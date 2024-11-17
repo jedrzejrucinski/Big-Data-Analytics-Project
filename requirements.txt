@@ -1,0 +1,12 @@
+openmeteo-requests
+requests-cache 
+retry-requests 
+numpy 
+pandas
+jsonschema
+scipy
+scikit-learn
+python-dotenv
+fastapi
+uvicorn
+pydantic
