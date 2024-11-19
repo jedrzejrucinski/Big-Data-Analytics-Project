@@ -1,5 +1,11 @@
 # Big-Data-Analytics-Project
 
+## VM domains
+### Nifi: 
+`http://13.74.48.118:8080/nifi`
+### FastApi:
+`http://13.74.48.118:8000/docs`
+
 ## Usage
 
 1. Run the FastAPI application:
