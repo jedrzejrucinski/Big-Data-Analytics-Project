@@ -49,29 +49,46 @@ def get_openmeteo_data(request: WeatherRequest):
     params = {
         "latitude": request.latitude,
         "longitude": request.longitude,
-        "hourly": "temperature_2m",
+        "current": [
+            "temperature_2m",
+            "relative_humidity_2m",
+            "precipitation",
+            "cloud_cover",
+            "surface_pressure",
+            "wind_speed_10m",
+            "wind_direction_10m",
+        ],
     }
     responses = openmeteo.weather_api(url, params=params)
+
     response = responses[0]
+    # Current values. The order of variables needs to be the same as requested.
+    current = response.Current()
 
-    hourly = response.Hourly()
-    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    current_temperature_2m = current.Variables(0).Value()
+    current_relative_humidity_2m = current.Variables(1).Value()
+    current_precipitation = current.Variables(2).Value()
+    current_cloud_cover = current.Variables(3).Value()
+    current_surface_pressure = current.Variables(4).Value()
+    current_wind_speed_10m = current.Variables(5).Value()
+    current_wind_direction_10m = current.Variables(6).Value()
+    data = [
+        {
+            "latitude": request.latitude,
+            "longitude": request.longitude,
+            "current_temperature_2m": current_temperature_2m,
+            "current_relative_humidity_2m": current_relative_humidity_2m,
+            "current_precipitation": current_precipitation,
+            "current_cloud_cover": current_cloud_cover,
+            "current_surface_pressure": current_surface_pressure,
+            "current_wind_speed_10m": current_wind_speed_10m,
+            "current_wind_direction_10m": current_wind_direction_10m,
+        }
+    ]
 
-    hourly_data = {
-        "date": pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=hourly.Interval()),
-            inclusive="left",
-        )
-    }
-    hourly_data["temperature_2m"] = hourly_temperature_2m
-
-    hourly_dataframe = pd.DataFrame(data=hourly_data)
-    data = hourly_dataframe.to_dict(orient="records")
-    print(data)
     port = "8082"
     send_to_nifi(data, config.nifi_base_url + f":{port}/openmeteo")
+
     return {"message": "Weather data sent to NiFi successfully"}
 
 
