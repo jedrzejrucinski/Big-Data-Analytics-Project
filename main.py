@@ -94,7 +94,7 @@ def get_openweather_data(city):
 
     response = requests.get(config.openweather_api_url, params=params)
     if response.status_code == 200:
-        port = "8082"
+        port = "8083"
         send_to_nifi(response.json(), config.nifi_base_url + f":{port}/openweather")
         return {"message": "Weather data sent to NiFi successfully"}
     else:
@@ -122,7 +122,7 @@ def get_weather_data(city):
 
     response = requests.get(endpoint, params=params)
     if response.status_code == 200:
-        port = "8082"
+        port = "8084"
         send_to_nifi(response.json(), config.nifi_base_url + f":{port}/weather")
         return {"message": "Weather data sent to NiFi successfully"}
     else:
