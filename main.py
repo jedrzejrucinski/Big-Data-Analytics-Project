@@ -131,13 +131,37 @@ def get_weather_data(city):
 
 @app.post("/satellite", tags=["satellite"])
 def get_satellite_data(request: SatelliteRequest):
-    endpoint = f"{config.ny2o_api_url}/positions/{request.sat_id}/{request.observer_lat}/{request.observer_lon}/{request.observer_alt}/{request.seconds}/"
+    """
+    Endpoint to get satellite data and send it to NiFi.
+
+    Args:
+        request (SatelliteRequest): The request object containing observer's latitude, longitude, altitude, number of days, and minimum visibility.
+
+    Returns:
+        dict: A message indicating whether the satellite data was sent to NiFi successfully.
+
+    Raises:
+        HTTPException: If the response status code is not 200, an HTTPException is raised with the response details.
+    """
+    endpoint = f"{config.ny2o_api_url}/visualpasses/{request.sat_id}/{request.observer_lat}/{request.observer_lng}/{request.observer_alt}/{request.days}/{request.min_visibility}/"
     params = {"apiKey": config.ny2o_api_key}
     response = requests.get(endpoint, params=params)
     if response.status_code == 200:
         data = response.json()
+        filtered_data = [
+            {
+                "passescount": data["info"]["passescount"],
+                "sat_id": request.sat_id,
+                "sat_name": data["info"]["satname"],
+                "startUTC": pass_["startUTC"],
+                "endUTC": pass_["endUTC"],
+                "duration": pass_["duration"],
+            }
+            for pass_ in data["passes"]
+        ]
+
         port = "8081"
-        send_to_nifi(data, config.nifi_base_url + f":{port}/satellite")
+        send_to_nifi(filtered_data, config.nifi_base_url + f":{port}/satellite")
         return {"message": "Satellite data sent to NiFi successfully"}
     else:
         raise HTTPException(status_code=response.status_code, detail=response.json())
