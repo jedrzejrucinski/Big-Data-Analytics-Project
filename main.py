@@ -71,7 +71,7 @@ def get_openmeteo_data(request: WeatherRequest):
     data = hourly_dataframe.to_dict(orient="records")
     print(data)
     port = "8082"
-    send_to_nifi(data, config.nifi_base_url + f":{port}/weather")
+    send_to_nifi(data, config.nifi_base_url + f":{port}/openmeteo")
     return {"message": "Weather data sent to NiFi successfully"}
 
 
@@ -95,7 +95,7 @@ def get_openweather_data(city):
     response = requests.get(config.openweather_api_url, params=params)
     if response.status_code == 200:
         port = "8082"
-        send_to_nifi(response.json(), config.nifi_base_url + f":{port}/weather")
+        send_to_nifi(response.json(), config.nifi_base_url + f":{port}/openweather")
         return {"message": "Weather data sent to NiFi successfully"}
     else:
         print(f"Error: {response.status_code}, {response.json()}")
