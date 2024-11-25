@@ -93,54 +93,86 @@ def get_openmeteo_data(request: WeatherRequest):
 
 
 @app.post("/openweather", tags=["weather"])
-def get_openweather_data(city):
+@app.post("/openweather", tags=["weather"])
+def get_openweather_data(request: WeatherRequest):
     """
-    Fetch weather data for a given city.
+    Fetch weather data for a specific location.
 
     Args:
-        city (str): Name of the city.
+        request (WeatherRequest): WeatherRequest object.
 
     Returns:
         dict: Weather data as JSON.
     """
     params = {
-        "q": city,
+        "lat": request.latitude,
+        "lon": request.longitude,
         "appid": config.openweather_api_key,
         "units": "metric",
     }
 
     response = requests.get(config.openweather_api_url, params=params)
     if response.status_code == 200:
+        weather_data = response.json()
+        data = [
+            {
+                "latitude": request.latitude,
+                "longitude": request.longitude,
+                "current_temperature_2m": weather_data["main"]["temp"],
+                "current_relative_humidity_2m": weather_data["main"]["humidity"],
+                "current_precipitation": weather_data.get("rain", {}).get("1h", 0),
+                "current_cloud_cover": weather_data["clouds"]["all"],
+                "current_surface_pressure": weather_data["main"]["pressure"],
+                "current_wind_speed_10m": weather_data["wind"]["speed"],
+                "current_wind_direction_10m": weather_data["wind"]["deg"],
+            }
+        ]
+
         port = "8083"
-        send_to_nifi(response.json(), config.nifi_base_url + f":{port}/openweather")
+        send_to_nifi(data, config.nifi_base_url + f":{port}/openweather")
         return {"message": "Weather data sent to NiFi successfully"}
     else:
-        print(f"Error: {response.status_code}, {response.json()}")
-        return None
+        raise HTTPException(status_code=response.status_code, detail=response.json())
 
 
 @app.post("/weatherapi", tags=["weather"])
-def get_weather_data(city):
+def get_weather_data(request: WeatherRequest):
     """
-    Fetch weather data for a specific city.
+    Fetch weather data for a specific location.
 
     Args:
-        city (str): Name of the city.
+        request (WeatherRequest): WeatherRequest object.
 
     Returns:
         dict: Weather data as JSON.
     """
     endpoint = f"{config.weather_api_url}/current.json"
     params = {
+        "q": f"{request.latitude},{request.longitude}",
         "key": config.weather_api_key,
-        "q": city,
         "aqi": "no",
     }
 
     response = requests.get(endpoint, params=params)
     if response.status_code == 200:
+        weather_data = response.json()
+        current = weather_data["current"]
+        data = [
+            {
+                "latitude": request.latitude,
+                "longitude": request.longitude,
+                "current_temperature_2m": current["temp_c"],
+                "current_relative_humidity_2m": current["humidity"],
+                "current_precipitation": current["precip_mm"],
+                "current_cloud_cover": current["cloud"],
+                "current_surface_pressure": current["pressure_mb"],
+                "current_wind_speed_10m": current["wind_kph"],
+                "current_wind_direction_10m": current["wind_degree"],
+            }
+        ]
+
         port = "8084"
-        send_to_nifi(response.json(), config.nifi_base_url + f":{port}/weather")
+        send_to_nifi(data, config.nifi_base_url + f":{port}/weatherapi")
         return {"message": "Weather data sent to NiFi successfully"}
     else:
         raise HTTPException(status_code=response.status_code, detail=response.json())

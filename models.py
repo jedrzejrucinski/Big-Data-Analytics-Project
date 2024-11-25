@@ -2,8 +2,8 @@ from pydantic import BaseModel
 
 
 class WeatherRequest(BaseModel):
-    latitude: float
-    longitude: float
+    latitude: float = 51.759445
+    longitude: float = 19.457216
 
 
 class SatelliteRequest(BaseModel):
