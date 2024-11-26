@@ -205,6 +205,8 @@ def get_satellite_data(request: SatelliteRequest):
                 "startUTC": pass_["startUTC"],
                 "endUTC": pass_["endUTC"],
                 "duration": pass_["duration"],
+                "startAz": pass_["startAz"],
+                "endAz": pass_["endAz"],
             }
             for pass_ in data["passes"]
         ]
