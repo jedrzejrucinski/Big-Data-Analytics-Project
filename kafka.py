@@ -17,10 +17,10 @@ class KafkaConsumer:
             while True:
                 msg = self.consumer.poll(timeout)
                 if msg is None:
-                    continue
+                    break
                 if msg.error():
                     if msg.error().code() == KafkaError._PARTITION_EOF:
-                        continue
+                        break
                     else:
                         raise KafkaException(msg.error())
                 print(f'Received message: {msg.value().decode("utf-8")}')
