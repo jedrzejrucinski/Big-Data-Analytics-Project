@@ -64,38 +64,48 @@ def test_kafka_consumer():
 
 
 def test_mysql_client():
-    weather_client = MySQLClient(
-        config.mysql_host, "weather_admin", config.mysql_password, "weather_db"
-    )
+    with MySQLClient(
+        config.mysql_host,
+        "weather_admin",
+        config.mysql_password,
+        "weather_db",
+        debug=True,
+    ) as weather_client, MySQLClient(
+        config.mysql_host,
+        "sattelite_admin",
+        config.mysql_password,
+        "satellite_db",
+        debug=True,
+    ) as satellite_client:
 
-    sattelite_client = MySQLClient(
-        config.mysql_host, "sattelite_admin", config.mysql_password, "satellite_db"
-    )
+        select_query = "SELECT * FROM satellites LIMIT 10"
+        results = satellite_client.read(select_query)
+        for row in results:
+            print(row)
+        assert len(results) > 0, "No rows fetched from satellites table."
 
-    weather_client.connect()
-    sattelite_client.connect()
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS weather_data (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            data VARCHAR(255) NOT NULL
+        )
+        """
+        weather_client.insert(create_table_query, ())
 
-    select_query = "SELECT * FROM satellites LIMIT 10"
-    results = sattelite_client.read(select_query)
-    for row in results:
-        print(row)
-    assert len(results) > 0
+        insert_query = "INSERT INTO weather_data (data) VALUES (%s)"
+        for row in results:
+            weather_client.insert(insert_query, (str(row),))
 
-    create_table_query = """
-    CREATE TABLE IF NOT EXISTS weather_data (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        data VARCHAR(255) NOT NULL
-    )
-    """
-    weather_client.insert(create_table_query, ())
+        verify_query = "SELECT * FROM weather_data"
+        inserted_rows = weather_client.read(verify_query)
+        print(f"Inserted rows: {inserted_rows}")
+        assert len(inserted_rows) == len(
+            results
+        ), "Inserted rows do not match expected count."
 
-    insert_query = "INSERT INTO weather_data (data) VALUES (%s)"
-    for row in results:
-        weather_client.insert(insert_query, (str(row),))
+        drop_table_query = "DROP TABLE weather_data"
+        weather_client.insert(drop_table_query, ())
 
-    weather_client.insert("DROP TABLE weather_data", ())
-    weather_client.disconnect()
-    sattelite_client.disconnect()
     print("MySQL Client test passed.")
 
 
