@@ -36,6 +36,9 @@ def test_adls_client():
     print("ADLS Client test passed.")
 
 
+import time
+
+
 def test_kafka_consumer():
     kafka_consumer = KafkaConsumer(
         broker=config.kafka_broker,
@@ -45,19 +48,16 @@ def test_kafka_consumer():
 
     timeout = 5
     end_time = time.time() + timeout
-    message_received = False
+    messages = []
 
     while time.time() < end_time:
-        msg_pack = kafka_consumer.consume_messages(timeout=10.0)
-        for tp, msgs in msg_pack.items():
-            for msg in msgs:
-                print(f"Received message: {msg.value.decode('utf-8')}")
-                message_received = True
-                break
-        if message_received:
-            break
+        msg_pack = kafka_consumer.consume_messages(timeout=1.0)
+        for msg in msg_pack:
+            messages.append(msg)
+            print(f"Received message: {msg}")
 
-    assert message_received, "No message received within the timeout period."
+    assert len(messages) > 0, "No messages received from the topic."
+    print(f"Latest message: {messages[-1]}")
     print("Kafka Consumer test passed.")
 
 
