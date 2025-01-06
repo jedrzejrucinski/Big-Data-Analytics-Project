@@ -52,8 +52,8 @@ def test_kafka_consumer():
 
     while time.time() < end_time:
         msg_pack = kafka_consumer.consume_messages(timeout=1.0)
+        messages.extend(msg_pack)
         for msg in msg_pack:
-            messages.append(msg)
             print(f"Received message: {msg}")
 
     assert len(messages) > 0, "No messages received from the topic."

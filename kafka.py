@@ -14,6 +14,7 @@ class KafkaConsumer:
         self.consumer.subscribe([topic])
 
     def consume_messages(self, timeout=1.0):
+        messages = []
         try:
             while True:
                 msg = self.consumer.poll(timeout)
@@ -24,9 +25,10 @@ class KafkaConsumer:
                         continue
                     else:
                         raise KafkaException(msg.error())
-                print(f'Received message: {msg.value().decode("utf-8")}')
+                messages.append(msg.value().decode("utf-8"))
                 self.consumer.commit(asynchronous=False)
         except KeyboardInterrupt:
             pass
         finally:
             self.consumer.close()
+        return messages
