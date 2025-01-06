@@ -7,7 +7,7 @@ class KafkaConsumer:
         self.conf = {
             "bootstrap.servers": broker,
             "group.id": group_id,
-            "auto.offset.reset": "earliest",
+            "auto.offset.reset": "latest",  # Change to 'latest' to get the newest messages
         }
         self.consumer = Consumer(self.conf)
         self.consumer.subscribe([topic])
