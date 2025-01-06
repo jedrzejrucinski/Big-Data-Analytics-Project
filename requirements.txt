@@ -10,3 +10,6 @@ python-dotenv
 fastapi
 uvicorn
 pydantic
+azure-storage-file-datalake
+confluent-kafka
+mysql-connector-python
