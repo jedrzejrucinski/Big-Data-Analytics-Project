@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-from adls import ADLSClient
-from kafka import KafkaConsumer
-from mysql_client import MySQLClient
+from clients.adls import ADLSClient
+from clients.kafka import KafkaConsumer
+from clients.mysql_client import MySQLClient
 from config import EnvConfig
 import time
 
