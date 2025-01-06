@@ -46,6 +46,7 @@ def test_kafka_consumer():
     for tp, msgs in messages.items():
         for msg in msgs:
             print(f"Received message: {msg.value.decode('utf-8')}")
+            break
 
     print("Kafka Consumer test passed.")
 
