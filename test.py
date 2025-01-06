@@ -38,9 +38,9 @@ def test_adls_client():
 
 def test_kafka_consumer():
     kafka_consumer = KafkaConsumer(
-        config.kafka_topic,
         broker=config.kafka_broker,
         group_id=config.kafka_group_id,
+        topic=config.kafka_topic,
     )
 
     timeout = 5
