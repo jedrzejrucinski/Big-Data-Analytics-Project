@@ -4,6 +4,7 @@ from adls import ADLSClient
 from kafka import KafkaConsumer
 from mysql_client import MySQLClient
 from config import EnvConfig
+import time
 
 load_dotenv()
 config = EnvConfig(os.environ)
@@ -37,17 +38,27 @@ def test_adls_client():
 
 def test_kafka_consumer():
     kafka_consumer = KafkaConsumer(
-        topic=config.kafka_topic,
+        config.kafka_topic,
         broker=config.kafka_broker,
         group_id=config.kafka_group_id,
     )
 
-    messages = kafka_consumer.consume_messages(timeout=5)
-    for tp, msgs in messages.items():
-        for msg in msgs:
-            print(f"Received message: {msg.value.decode('utf-8')}")
+    kafka_consumer.subscribe([config.kafka_topic])
+    timeout = 5
+    end_time = time.time() + timeout
+    message_received = False
+
+    while time.time() < end_time:
+        msg_pack = kafka_consumer.consume_messages(timeout=10.0)
+        for tp, msgs in msg_pack.items():
+            for msg in msgs:
+                print(f"Received message: {msg.value.decode('utf-8')}")
+                message_received = True
+                break
+        if message_received:
             break
 
+    assert message_received, "No message received within the timeout period."
     print("Kafka Consumer test passed.")
 
 
