@@ -46,7 +46,7 @@ def test_kafka_consumer():
         topic=config.kafka_topic,
     )
 
-    timeout = 30
+    timeout = 15
     end_time = time.time() + timeout
     messages = []
 
@@ -69,7 +69,7 @@ def test_mysql_client():
     )
 
     sattelite_client = MySQLClient(
-        config.mysql_host, "sattelite_admin", config.mysql_password, "sattelite_db"
+        config.mysql_host, "sattelite_admin", config.mysql_password, "satellite_db"
     )
 
     weather_client.connect()
