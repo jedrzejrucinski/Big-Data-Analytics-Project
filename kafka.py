@@ -7,8 +7,7 @@ class KafkaConsumer:
         self.conf = {
             "bootstrap.servers": broker,
             "group.id": group_id,
-            "auto.offset.reset": "earliest",
-            "enable.auto.commit": False,
+            "auto.offset.reset": "latest",
         }
         self.consumer = Consumer(self.conf)
         self.consumer.subscribe([topic])
@@ -26,7 +25,6 @@ class KafkaConsumer:
                     else:
                         raise KafkaException(msg.error())
                 messages.append(msg.value().decode("utf-8"))
-                self.consumer.commit(asynchronous=False)
         except KeyboardInterrupt:
             pass
         return messages
