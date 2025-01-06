@@ -13,3 +13,5 @@ pydantic
 azure-storage-file-datalake
 confluent-kafka
 mysql-connector-python
+river
+pytz
