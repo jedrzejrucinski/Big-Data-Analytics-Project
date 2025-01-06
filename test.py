@@ -56,6 +56,8 @@ def test_kafka_consumer():
         for msg in msg_pack:
             print(f"Received message: {msg}")
 
+    kafka_consumer.close()
+
     assert len(messages) > 0, "No messages received from the topic."
     print(f"Latest message: {messages[-1]}")
     print("Kafka Consumer test passed.")

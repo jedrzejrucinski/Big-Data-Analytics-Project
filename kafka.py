@@ -29,6 +29,7 @@ class KafkaConsumer:
                 self.consumer.commit(asynchronous=False)
         except KeyboardInterrupt:
             pass
-        finally:
-            self.consumer.close()
         return messages
+
+    def close(self):
+        self.consumer.close()
