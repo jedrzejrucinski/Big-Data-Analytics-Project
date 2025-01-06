@@ -37,10 +37,9 @@ def test_adls_client():
 
 def test_kafka_consumer():
     kafka_consumer = KafkaConsumer(
-        config.kafka_topic,
-        bootstrap_servers=config.kafka_broker,
+        topic=config.kafka_topic,
+        broker=config.kafka_broker,
         group_id=config.kafka_group_id,
-        auto_offset_reset="earliest",
     )
 
     messages = kafka_consumer.poll(timeout_ms=5000)
