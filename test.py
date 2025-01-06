@@ -72,7 +72,7 @@ def test_mysql_client():
         debug=True,
     ) as weather_client, MySQLClient(
         config.mysql_host,
-        "sattelite_admin",
+        "satellite_admin",
         config.mysql_password,
         "satellite_db",
         debug=True,
