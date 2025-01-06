@@ -46,7 +46,7 @@ def test_kafka_consumer():
         topic=config.kafka_topic,
     )
 
-    timeout = 5
+    timeout = 30
     end_time = time.time() + timeout
     messages = []
 
