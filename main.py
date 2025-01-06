@@ -33,7 +33,7 @@ def process_message(message):
 
     # get model
     model = adls_client.load_pickled_model_from_container(
-        config.container_name, "model.pkl"
+        config.container_name, "initial_model.pkl"
     )
 
     # fit
@@ -42,7 +42,7 @@ def process_message(message):
     print("forecasting")
     # save forecast to ADLS & mysql
     insert_query = """
-        INSERT INTO forecast_table (
+        INSERT INTO cloud_cover_forecasts (
             location_id, forecast_hour_1, forecast_hour_2, forecast_hour_3, 
             forecast_hour_4, forecast_hour_5, forecast_hour_6, forecast_hour_7, 
             forecast_hour_8, forecast_hour_9, forecast_hour_10, forecast_hour_11, 
