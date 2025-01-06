@@ -43,7 +43,6 @@ def test_kafka_consumer():
         group_id=config.kafka_group_id,
     )
 
-    kafka_consumer.subscribe([config.kafka_topic])
     timeout = 5
     end_time = time.time() + timeout
     message_received = False
