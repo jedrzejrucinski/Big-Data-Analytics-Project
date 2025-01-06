@@ -13,20 +13,18 @@ class KafkaConsumer:
         self.consumer.subscribe([topic])
 
     def consume_messages(self, timeout=1.0):
-        messages = []
         try:
             while True:
                 msg = self.consumer.poll(timeout)
                 if msg is None:
-                    break
+                    continue
                 if msg.error():
                     if msg.error().code() == KafkaError._PARTITION_EOF:
-                        break
+                        continue
                     else:
                         raise KafkaException(msg.error())
-                messages.append(msg.value().decode("utf-8"))
+                print(f'Received message: {msg.value().decode("utf-8")}')
         except KeyboardInterrupt:
             pass
         finally:
             self.consumer.close()
-        return messages
