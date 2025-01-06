@@ -42,7 +42,7 @@ def test_kafka_consumer():
         group_id=config.kafka_group_id,
     )
 
-    messages = kafka_consumer.poll(timeout_ms=5000)
+    messages = kafka_consumer.consume_messages(timeout=5)
     for tp, msgs in messages.items():
         for msg in msgs:
             print(f"Received message: {msg.value.decode('utf-8')}")
