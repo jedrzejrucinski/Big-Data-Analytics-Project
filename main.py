@@ -58,7 +58,7 @@ def process_message(message):
 
     # Example data for insertion
     values = (
-        2,  # location_id
+        3,  # location_id
         15,
         20,
         25,
