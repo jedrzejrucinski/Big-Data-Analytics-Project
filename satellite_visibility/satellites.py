@@ -8,7 +8,7 @@ class Satellite(BaseModel):
 
 class SatelliteTrajectory(BaseModel):
     satid: int
-    startUtC: int
+    startUTC: int
     endUTC: int
     startAz: float
     endAz: float
