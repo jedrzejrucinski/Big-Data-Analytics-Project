@@ -80,8 +80,9 @@ def process_message(message):
         'models', f"model_{id}.pkl", model_pickle
     )
 
+    forecast_dict = {"id": id, "timestamp": int(message['timestamp']), "forecast": forecast.tolist()}
     adls_client.upload_dict_as_json(
-        'historical-forcasts', f"{id}-{message['timestamp']}.json", json.dumps(values+(message['timestamp']))
+        'historical-forcasts', f"{id}-{message['timestamp']}.json", forecast_dict
     )  
 
 
