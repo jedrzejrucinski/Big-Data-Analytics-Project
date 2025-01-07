@@ -1,3 +1,4 @@
+import logging
 from clients.adls import ADLSClient
 from clients.kafka import KafkaConsumer
 from clients.mysql_client import MySQLClient
@@ -8,6 +9,11 @@ from config import EnvConfig
 import numpy as np
 import pickle
 import math
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 load_dotenv()
 
@@ -26,23 +32,22 @@ mysql_client = MySQLClient(
     "weather_db",
 )
 
-def process_message(message):
 
-    print(f"Processing message: {message}")  # tu jest 
+def process_message(message):
+    logging.info(f"Processing message: {message}")
     message = json.loads(message)
-    #lat, lon = float(message['latitude']), float(message['longitude'])  this will work but for now it wont match values in the table
+    # lat, lon = float(message['latitude']), float(message['longitude'])  this will work but for now it wont match values in the table
     lat, lon = 51.7, 19.5
     id = get_location_id(lat, lon)
-    print(id)
-    print(f"Location id: {id}")
-    
-    print("preprocessing")  # use lat long to get right model pickle file
+    logging.info(f"Location id: {id}")
+
+    logging.info("Preprocessing data")
     y = int(message["cloud_coverage"])
 
     if np.isnan(y):
         return
-    
-    print(y)
+
+    logging.info(f"Cloud coverage: {y}")
     # preprocessing X here, not relevant right now
 
     # get model
@@ -50,14 +55,16 @@ def process_message(message):
         config.container_name, f"model_{id}.pkl"
     )
     # fit
-    print("fitting model")
+    logging.info("Fitting model")
 
     model.learn_one(int(y))
-    
+
     # forecast
-    print("forecasting")
-    forecast = np.clip(np.array(model.forecast(4*24)), 0, 100).reshape(-1, 4).mean(axis=1)
-    
+    logging.info("Forecasting")
+    forecast = (
+        np.clip(np.array(model.forecast(4 * 24)), 0, 100).reshape(-1, 4).mean(axis=1)
+    )
+
     # save forecast to ADLS & mysql
     update_query = """
         UPDATE cloud_cover_forecasts SET
@@ -74,34 +81,35 @@ def process_message(message):
 
     # Example data for insertion
     values = tuple(forecast) + (id,)
-    print("values", values)
+    logging.info(f"Forecast values: {values}")
 
     # Execute the query
     with mysql_client as db:
         db.execute(update_query, values)
 
-
-    #Save the model back to ADLS and the forecast to ADLS
+    # Save the model back to ADLS and the forecast to ADLS
     model_pickle = pickle.dumps(model)
-    adls_client.upload_pickle(
-        'models', f"model_{id}.pkl", model_pickle
-    )
+    adls_client.upload_pickle("models", f"model_{id}.pkl", model_pickle)
 
-    forecast_dict = {"id": id, "timestamp": int(message['timestamp']), "forecast": forecast.tolist()}
+    forecast_dict = {
+        "id": id,
+        "timestamp": int(message["timestamp"]),
+        "forecast": forecast.tolist(),
+    }
     adls_client.upload_dict_as_json(
-        'historical-forcasts', f"{id}-{message['timestamp']}.json", forecast_dict
-    )  
+        "historical-forcasts", f"{id}-{message['timestamp']}.json", forecast_dict
+    )
 
 
 def run_consumer():
     try:
-        print("Starting Kafka consumer...")
+        logging.info("Starting Kafka consumer...")
         while True:
             messages = kafka_consumer.consume_messages(timeout=1.0)
             for message in messages:
                 process_message(message)
     except KeyboardInterrupt:
-        print("Stopping Kafka consumer...")
+        logging.info("Stopping Kafka consumer...")
     finally:
         kafka_consumer.close()
 
@@ -112,9 +120,10 @@ def get_location_id(lat, lon):
     with mysql_client as db:
         result = db.read(query, values)
         if result:
-            return result[0]['id']
+            return result[0]["id"]
         else:
             return None
+
 
 if __name__ == "__main__":
     run_consumer()
