@@ -29,7 +29,7 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
         SatelliteTrajectory: Satellite trajectory data.
     """
     query = "SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories WHERE satid=%s"
-    values = (satellite.satid,)
+    values = (satellite.id,)
     with mysql_client as db:
         data = db.read(query, values)
     if not data:
