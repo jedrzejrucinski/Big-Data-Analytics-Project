@@ -30,11 +30,12 @@ def process_message(message):
 
     print(f"Processing message: {message}")  # tu jest 
     message = json.loads(message)
+    print(type(message['latitude']))
     id = get_location_id(message['latitude'], message['longitude'])
     print(f"Location id: {id}")
     
     print("preprocessing")  # use lat long to get right model pickle file
-    y = message["cloud_cover"]
+    y = message["cloud_coverage"]
     # preprocessing X here, not relevant right now
 
     # get model
