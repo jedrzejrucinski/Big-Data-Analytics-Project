@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 from config import EnvConfig
 
+load_dotenv()
 config = EnvConfig(os.environ)
 
 mysql_client = MySQLClient(
