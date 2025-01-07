@@ -1,4 +1,4 @@
-from visibility_main import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 import pandas as pd
 from retry_requests import retry
 from config import EnvConfig
