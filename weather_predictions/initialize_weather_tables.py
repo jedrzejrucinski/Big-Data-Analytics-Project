@@ -14,6 +14,7 @@ mysql_client = MySQLClient(
     "weather_db",
 )
 
+
 def initialize_tables():
     with mysql_client as db:
         db.execute("SET FOREIGN_KEY_CHECKS = 0")
@@ -26,9 +27,9 @@ def initialize_tables():
 
         # Insert new rows into the locations table using a double loop
         insert_query = "INSERT INTO locations (latitude, longitude) VALUES (%s, %s)"
-        
-        for lat in np.arange(49.1, 55, 0.2):  
-            for lon in np.arange(14.1, 24, 0.2): 
+
+        for lat in np.arange(49.1, 55, 0.2):
+            for lon in np.arange(14.1, 24, 0.2):
                 values = (lat, lon)
                 db.insert(insert_query, values)
 
@@ -37,9 +38,9 @@ def initialize_tables():
 INSERT INTO cloud_cover_forecasts VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
         for location in location_ids:
-            values = (location['id'],) + (0,) * 24
+            values = (location["id"],) + (0,) * 24
             db.insert(insert_query, values)
+
 
 if __name__ == "__main__":
     initialize_tables()
-

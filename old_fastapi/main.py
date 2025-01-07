@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from visibility_main import FastAPI, HTTPException
 from models import WeatherRequest, SatelliteRequest
 import openmeteo_requests
 import requests_cache
