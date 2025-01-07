@@ -35,6 +35,18 @@ class ADLSClient:
         except Exception as e:
             print(e)
 
+    def upload_pickle(self, container_name, file_name, pickle_data):
+        try:
+            file_system_client = self.service_client.get_file_system_client(
+                file_system=container_name
+            )
+            file_client = file_system_client.create_file(file_name)
+
+            file_client.upload_data(pickle_data, overwrite=True)
+            print(f"Model {file_name} uploaded to {container_name} successfully.")
+        except Exception as e:
+            print(e)
+
     def download_file_from_container(self, container_name, file_name, download_path):
         try:
             file_system_client = self.service_client.get_file_system_client(

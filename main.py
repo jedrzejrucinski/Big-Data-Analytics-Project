@@ -42,7 +42,7 @@ def process_message(message):
 
     # get model
     model = adls_client.load_pickled_model_from_container(
-        config.container_name, "initial_model.pkl"
+        config.container_name, f"model_{id}.pkl"
     )
     # fit
     print("fitting model")
@@ -50,7 +50,7 @@ def process_message(message):
     
     # forecast
     print("forecasting")
-    forecast = forecast = np.clip(np.array(model.forecast(4*24)), 0, 100).reshape(-1, 4).mean(axis=1)
+    forecast = np.clip(np.array(model.forecast(4*24)), 0, 100).reshape(-1, 4).mean(axis=1)
 
     # save forecast to ADLS & mysql
     update_query = """
@@ -74,15 +74,15 @@ def process_message(message):
         db.execute(update_query, values)
 
 
-    # Save the model back to ADLS and the forecast to ADLS
-    # model_pickle = pickle.dumps(model)
-    # adls_client.upload_pickle(
-    #     config.container_name, "initial_model.pkl", model_pickle
-    # )
+    #Save the model back to ADLS and the forecast to ADLS
+    model_pickle = pickle.dumps(model)
+    adls_client.upload_pickle(
+        'models', f"model_{id}.pkl", model_pickle
+    )
 
-    # adls_client.upload_dict_as_json(
-    #     config.container_name, "forecast.json", json.dumps(values+(message['timestamp']))
-    # )  
+    adls_client.upload_dict_as_json(
+        'historical-forcasts', f"{id}-{message['timestamp']}.json", json.dumps(values+(message['timestamp']))
+    )  
 
 
 def run_consumer():
