@@ -33,6 +33,7 @@ def process_message(message):
     #lat, lon = float(message['latitude']), float(message['longitude'])  this will work but for now it wont match values in the table
     lat, lon = 51.7, 19.5
     id = get_location_id(lat, lon)
+    print(id)
     print(f"Location id: {id}")
     
     print("preprocessing")  # use lat long to get right model pickle file
@@ -51,7 +52,7 @@ def process_message(message):
     # forecast
     print("forecasting")
     forecast = np.clip(np.array(model.forecast(4*24)), 0, 100).reshape(-1, 4).mean(axis=1)
-
+    
     # save forecast to ADLS & mysql
     update_query = """
         UPDATE cloud_cover_forecasts SET
@@ -68,6 +69,7 @@ def process_message(message):
 
     # Example data for insertion
     values = (id,) + tuple(forecast)
+    print("values", values)
 
     # Execute the query
     with mysql_client as db:
