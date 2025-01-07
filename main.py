@@ -28,8 +28,12 @@ def process_message(message):
     # Custom logic to process the message
 
     # need location id here also
-    print(f"Processing message: {message}")  # tu jest ML
+    print(f"Processing message: {message}")  # tu jest 
+    id = get_location_id(message['latitude'], message['longitude'])
+    print(f"Location id: {id}")
+    
     print("preprocessing")  # use lat long to get right model pickle file
+
 
     # get model
     model = adls_client.load_pickled_model_from_container(
@@ -85,13 +89,13 @@ def process_message(message):
         130,
     )
 
-    # Execute the query
-    with mysql_client as db:
-        db.insert(insert_query, values)
+    # # Execute the query
+    # with mysql_client as db:
+    #     db.insert(insert_query, values)
 
-    adls_client.upload_dict_as_json(
-        config.container_name, "forecast.json", json.dumps(values)
-    )  # results are ml forecast results
+    # adls_client.upload_dict_as_json(
+    #     config.container_name, "forecast.json", json.dumps(values)
+    # )  # results are ml forecast results
 
 
 def run_consumer():
@@ -106,6 +110,16 @@ def run_consumer():
     finally:
         kafka_consumer.close()
 
+
+def get_location_id(lat, lon):
+    query = "SELECT id FROM locations WHERE latitude = %s AND longitude = %s"
+    values = (lat, lon)
+    with mysql_client as db:
+        result = db.select(query, values)
+        if result:
+            return result[0]['id']
+        else:
+            return None
 
 if __name__ == "__main__":
     run_consumer()
