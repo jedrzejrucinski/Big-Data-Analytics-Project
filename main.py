@@ -116,7 +116,7 @@ def get_location_id(lat, lon):
     query = "SELECT id FROM locations WHERE latitude = %s AND longitude = %s"
     values = (lat, lon)
     with mysql_client as db:
-        result = db.select(query, values)
+        result = db.read(query, values)
         if result:
             return result[0]['id']
         else:

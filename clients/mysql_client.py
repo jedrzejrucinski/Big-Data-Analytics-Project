@@ -43,13 +43,13 @@ class MySQLClient:
         finally:
             cursor.close()
 
-    def read(self, query):
+    def read(self, query, params=None):
         try:
-            cursor = self.connection.cursor()
-            cursor.execute(query)
+            cursor = self.connection.cursor(dictionary=True)
+            cursor.execute(query, params)
             result = cursor.fetchall()
             if self.debug:
-                print(f"Query executed: {query}")
+                print(f"Query executed: {query} with params: {params}")
             return result
         except connector.Error as err:
             raise RuntimeError(f"Failed to execute read: {err}")
