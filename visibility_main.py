@@ -55,7 +55,7 @@ def get_visibility_at_location(lat: float, lon: float):
 
 
 if __name__ == "__main__":
-    satellite = Satellite(satid=2, name="SPUTNIK 1")
+    satellite = Satellite(id=2, name="SPUTNIK 1")
     trajectory = get_satellite_trajectory(satellite)
     print(trajectory)
     # import uvicorn
