@@ -38,7 +38,7 @@ def process_message(message):
     
     print("preprocessing")  # use lat long to get right model pickle file
     y = int(message["cloud_coverage"])
-    
+
     if np.isnan(y):
         return
     
@@ -73,7 +73,7 @@ def process_message(message):
     """
 
     # Example data for insertion
-    values = (id,) + tuple(forecast)
+    values = tuple(forecast) + (id,)
     print("values", values)
 
     # Execute the query
