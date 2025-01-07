@@ -29,6 +29,7 @@ def process_message(message):
 
     # need location id here also
     print(f"Processing message: {message}")  # tu jest 
+    message = json.loads(message)
     id = get_location_id(message['latitude'], message['longitude'])
     print(f"Location id: {id}")
     
