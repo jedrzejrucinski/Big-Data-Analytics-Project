@@ -16,11 +16,13 @@ mysql_client = MySQLClient(
 
 def initialize_tables():
     with mysql_client as db:
+        db.execute("SET FOREIGN_KEY_CHECKS = 0")
         # Truncate the cloud_cover_forecasts table to remove all rows and reset auto-increment
         db.execute("TRUNCATE TABLE cloud_cover_forecasts")
 
         # Truncate the locations table to remove all rows and reset auto-increment
         db.execute("TRUNCATE TABLE locations")
+        db.execute("SET FOREIGN_KEY_CHECKS = 1")
 
         # Insert new rows into the locations table using a double loop
         insert_query = "INSERT INTO locations (latitude, longitude) VALUES (%s, %s)"
