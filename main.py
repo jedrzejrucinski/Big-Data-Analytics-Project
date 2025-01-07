@@ -30,7 +30,6 @@ def process_message(message):
 
     print(f"Processing message: {message}")  # tu jest 
     message = json.loads(message)
-    print(type(message['latitude']))
     #lat, lon = float(message['latitude']), float(message['longitude'])  this will work but for now it wont match values in the table
     lat, lon = 51.7, 19.5
     id = get_location_id(lat, lon)
@@ -38,6 +37,7 @@ def process_message(message):
     
     print("preprocessing")  # use lat long to get right model pickle file
     y = message["cloud_coverage"]
+    print(y)
     # preprocessing X here, not relevant right now
 
     # get model
