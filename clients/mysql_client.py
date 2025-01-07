@@ -56,6 +56,18 @@ class MySQLClient:
         finally:
             cursor.close()
 
+    def execute(self, query, params=None):
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query, params)
+            self.connection.commit()
+            if self.debug:
+                print(f"Query executed: {query} with params: {params}")
+        except connector.Error as err:
+            raise RuntimeError(f"Failed to execute execute: {err}")
+        finally:
+            cursor.close()
+
     def fetch_one(self, query):
         try:
             cursor = self.connection.cursor()
