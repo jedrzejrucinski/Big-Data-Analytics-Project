@@ -37,7 +37,11 @@ def process_message(message):
     print(f"Location id: {id}")
     
     print("preprocessing")  # use lat long to get right model pickle file
-    y = message["cloud_coverage"]
+    y = int(message["cloud_coverage"])
+    
+    if np.isnan(y):
+        return
+    
     print(y)
     # preprocessing X here, not relevant right now
 
@@ -47,6 +51,7 @@ def process_message(message):
     )
     # fit
     print("fitting model")
+
     model.learn_one(int(y))
     
     # forecast
