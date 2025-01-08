@@ -193,7 +193,8 @@ def _get_visibile_satellites(
         get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
         for satellite in satellites
     ]
-    cosmos_db_client_2.add_items([item.dict() for item in result])
+    for item in result:
+        cosmos_db_client_2.add_item(item.dict())
     return result
 
 
