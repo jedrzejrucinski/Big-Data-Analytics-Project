@@ -109,7 +109,6 @@ def get_forecast_value(forecast: WeatherForecast, forecast_window: int) -> float
     return getattr(forecast, attribute_name)
 
 
-@app.post("/visibility_of_satellite", tags=["visibility"])
 def get_visibility_of_satellite(
     satellite: Satellite, location: Location, time: int = None
 ) -> SatelliteVisibility:
@@ -143,13 +142,31 @@ def get_visibility_of_satellite(
         visibility=get_forecast_value(forecast, forecast_window),
     )
 
+    return result
+
+
+@app.post("/visibility_of_satellite", tags=["visibility"])
+def _get_visibility_of_satellite(
+    satellite: Satellite, location: Location, time: int = None
+) -> SatelliteVisibility:
+    """
+    Get visibility of satellite.
+    Args:
+        satellite (Satellite): Satellite object.
+        location (Location): Location object.
+    Returns:
+        dict: Visibility of satellite.
+    """
+
+    result = get_visibility_of_satellite(satellite, location, time)
+
     cosmos_db_client.add_item(result.dict())
 
     return result
 
 
 @app.post("/visibile_satellites", tags=["visibility"])
-def get_visibile_satellites(
+def _get_visibile_satellites(
     location: Location, start_time: int = 1736166360, end_time: int = 1736801390
 ) -> list[SatelliteVisibility]:
     """
@@ -162,9 +179,9 @@ def get_visibile_satellites(
         list[SatelliteVisibility]: List of visibile satellites.
     """
     satellites = get_satellites_in_time_range(start_time, end_time)
-    print(satellites)
     return [
-        get_visibility_of_satellite(satellite, location) for satellite in satellites
+        get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
+        for satellite in satellites
     ]
 
 
