@@ -5,7 +5,7 @@ from config import EnvConfig
 from dotenv import load_dotenv
 from clients.mysql_client import MySQLClient
 import os
-from models.satellites import Satellite, SatelliteTrajectory
+from models.satellites import Satellite, SatelliteTrajectory, SatelliteVisibility
 from models.weather import Location, WeatherForecast
 
 load_dotenv()
@@ -62,8 +62,26 @@ def get_weather_forecast(location: Location) -> WeatherForecast:
     return WeatherForecast(**data[0])
 
 
+def convert_utc_to_local(utc_time: int) -> pd.Timestamp:
+    """
+    Convert UTC time to local time.
+    Args:
+        utc_time (pd.Timestamp): UTC time.
+        location (Location): Location object.
+    Returns:
+        pd.Timestamp: Local time.
+    """
+    return (
+        pd.to_datetime(utc_time, unit="s")
+        .tz_localize("UTC")
+        .tz_convert("Europe/Warsaw")
+    )
+
+
 @app.post("/visibility_of_satellite", tags=["visibility"])
-def get_visibility_of_satellite(satellite: Satellite, location: Location):
+def get_visibility_of_satellite(
+    satellite: Satellite, location: Location
+) -> SatelliteVisibility:
     """
     Get visibility of satellite.
     Args:
@@ -74,7 +92,22 @@ def get_visibility_of_satellite(satellite: Satellite, location: Location):
     """
     trajectory = get_satellite_trajectory(satellite)
     forecast = get_weather_forecast(location)
-    print(trajectory, forecast)
+    current_time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
+    start_time = convert_utc_to_local(trajectory.startUTC)
+    end_time = convert_utc_to_local(trajectory.endUTC)
+    if current_time < start_time or current_time > end_time:
+        raise HTTPException(status_code=404, detail="Satellite not visible")
+    if start_time.day != current_time.day:
+        forecast_window = (24 - start_time.hour) + current_time.hour
+    else:
+        forecast_window = current_time.hour - start_time.hour
+
+    return SatelliteVisibility(
+        satellite=satellite,
+        startUTC=trajectory.startUTC,
+        endUTC=trajectory.endUTC,
+        visibility=forecast.forecast[forecast_window],
+    )
 
 
 if __name__ == "__main__":
