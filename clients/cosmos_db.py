@@ -5,12 +5,12 @@ import uuid
 
 
 class CosmosDBClient:
-    def __init__(self, config: EnvConfig):
+    def __init__(self, config: EnvConfig, container_name: str):
         endpoint = config.cosmosdb_account_host
         key = config.cosmosdb_account_key
         self.client = CosmosClient(endpoint, key)
         self.database_name = config.cosmosdb_database
-        self.container_name = config.cosmosdb_container
+        self.container_name = container_namer
         self.database = self.client.get_database_client(self.database_name)
         self.container = self.database.get_container_client(self.container_name)
 

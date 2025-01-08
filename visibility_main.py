@@ -27,7 +27,12 @@ weather_mysql_client = MySQLClient(
     config.mysql_password,
     "weather_db",
 )
-cosmos_db_client = CosmosDBClient(config=config)
+cosmos_db_client_1 = CosmosDBClient(
+    config=config, container_name="satellite_visibility_1"
+)
+cosmos_db_client_2 = CosmosDBClient(
+    config=config, container_name="satellite_visibility_2"
+)
 
 
 def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
@@ -165,7 +170,7 @@ def _get_visibility_of_satellite(
 
     result = get_visibility_of_satellite(satellite, location, time)
 
-    cosmos_db_client.add_item(result.dict())
+    cosmos_db_client_1.add_item(result.dict())
 
     return result
 
@@ -188,6 +193,8 @@ def _get_visibile_satellites(
         get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
         for satellite in satellites
     ]
+    cosmos_db_client_2.add_items([item.dict() for item in result])
+    return result
 
 
 if __name__ == "__main__":
