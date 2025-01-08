@@ -55,7 +55,7 @@ def get_weather_forecast(location: Location) -> WeatherForecast:
     return WeatherForecast(**data[0])
 
 
-@app.get("/visibility_of_satellite", tags=["visibility"])
+@app.post("/visibility_of_satellite", tags=["visibility"])
 def get_visibility_of_satellite(satellite: Satellite, location: Location):
     """
     Get visibility of satellite.
