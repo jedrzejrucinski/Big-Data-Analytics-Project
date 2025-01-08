@@ -2,8 +2,8 @@ from pydantic import BaseModel
 
 
 class Satellite(BaseModel):
-    id: int
-    name: str
+    id: int = 5
+    name: str = "VANGUARD 1"
 
 
 class SatelliteTrajectory(BaseModel):
