@@ -5,7 +5,8 @@ from config import EnvConfig
 from dotenv import load_dotenv
 from clients.mysql_client import MySQLClient
 import os
-from satellite_visibility.satellites import Satellite, SatelliteTrajectory
+from models.satellites import Satellite, SatelliteTrajectory
+from models.weather import Location, WeatherForecast
 
 load_dotenv()
 
@@ -37,27 +38,39 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
     return SatelliteTrajectory(**data[0])
 
 
-@app.get("/visibility_at_location", tags=["visibility"])
-def get_visibility_at_location(lat: float, lon: float):
+def get_weather_forecast(location: Location) -> WeatherForecast:
     """
-    Get visibility at a specific location.
-
+    Get weather forecast data.
     Args:
-        lat (float): Latitude.
-        lon (float): Longitude.
-
+        location (Location): Location object.
     Returns:
-        dict: Visibility data as JSON.
+        WeatherForecast: Weather forecast data.
     """
-    # Get visibility data from the Open-Meteo API
+    query = "SELECT * from cloud_cover_forecasts WHERE location_id=%s"
+    values = (location.id,)
+    with mysql_client as db:
+        data = db.read(query, values)
+    if not data:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return WeatherForecast(**data[0])
 
-    pass
+
+@app.get("/visibility_of_satellite", tags=["visibility"])
+def get_visibility_of_satellite(satellite: Satellite, location: Location):
+    """
+    Get visibility of satellite.
+    Args:
+        satellite (Satellite): Satellite object.
+        location (Location): Location object.
+    Returns:
+        dict: Visibility of satellite.
+    """
+    trajectory = get_satellite_trajectory(satellite)
+    forecast = get_weather_forecast(location)
+    print(trajectory, forecast)
 
 
 if __name__ == "__main__":
-    satellite = Satellite(id=5, name="VANGUARD 1")
-    trajectory = get_satellite_trajectory(satellite)
-    print(trajectory)
-    # import uvicorn
+    import uvicorn
 
-    # uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

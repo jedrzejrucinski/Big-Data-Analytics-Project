@@ -12,3 +12,10 @@ class SatelliteTrajectory(BaseModel):
     endUTC: int
     startAz: float
     endAz: float
+
+
+class SatelliteVisibility(BaseModel):
+    satellite: Satellite
+    startUTC: int
+    endUTC: int
+    visibility: float
