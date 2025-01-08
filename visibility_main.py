@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     # uvicorn.run(app, host="0.0.0.0", port=8000)
     satellites = get_satellites_in_time_range(
-        start_time=1736213260, end_time=1736749220
+        start_time=1736166360, end_time=1736801390
     )
     for satellite in satellites:
         print(satellite)
