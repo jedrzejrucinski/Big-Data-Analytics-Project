@@ -78,6 +78,11 @@ def convert_utc_to_local(utc_time: int) -> pd.Timestamp:
     )
 
 
+def get_forecast_value(forecast: WeatherForecast, forecast_window: int) -> float:
+    attribute_name = f"forecast_hour_{forecast_window}"
+    return getattr(forecast, attribute_name)
+
+
 @app.post("/visibility_of_satellite", tags=["visibility"])
 def get_visibility_of_satellite(
     satellite: Satellite, location: Location, time: int = None
@@ -109,7 +114,7 @@ def get_visibility_of_satellite(
         satellite=satellite,
         startUTC=trajectory.startUTC,
         endUTC=trajectory.endUTC,
-        visibility=forecast.forecast[forecast_window],
+        visibility=get_forecast_value(forecast, forecast_window),
     )
 
 
