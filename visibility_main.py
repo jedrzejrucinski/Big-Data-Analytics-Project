@@ -148,12 +148,26 @@ def get_visibility_of_satellite(
     return result
 
 
-if __name__ == "__main__":
-    # import uvicorn
+@app.post("/visibile_satellites", tags=["visibility"])
+def get_visibile_satellites(
+    location: Location, start_time: int = 1736166360, end_time: int = 1736801390
+) -> list[SatelliteVisibility]:
+    """
+    Get visibile satellites.
+    Args:
+        location (Location): Location object.
+        start_time (int): Start time.
+        end_time (int): End time.
+    Returns:
+        list[SatelliteVisibility]: List of visibile satellites.
+    """
+    satellites = get_satellites_in_time_range(start_time, end_time)
+    return [
+        get_visibility_of_satellite(satellite, location) for satellite in satellites
+    ]
 
-    # uvicorn.run(app, host="0.0.0.0", port=8000)
-    satellites = get_satellites_in_time_range(
-        start_time=1736166360, end_time=1736801390
-    )
-    for satellite in satellites:
-        print(satellite)
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
