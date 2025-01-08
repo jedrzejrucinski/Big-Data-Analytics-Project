@@ -162,6 +162,7 @@ def get_visibile_satellites(
         list[SatelliteVisibility]: List of visibile satellites.
     """
     satellites = get_satellites_in_time_range(start_time, end_time)
+    print(satellites)
     return [
         get_visibility_of_satellite(satellite, location) for satellite in satellites
     ]
