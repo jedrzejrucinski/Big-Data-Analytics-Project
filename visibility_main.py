@@ -13,11 +13,18 @@ load_dotenv()
 config = EnvConfig(os.environ)
 
 app = FastAPI()
-mysql_client = MySQLClient(
+satellite_mysql_client = MySQLClient(
     config.mysql_host,
     "satellite_admin",
     config.mysql_password,
     "satellite_db",
+)
+
+weather_mysql_client = MySQLClient(
+    config.mysql_host,
+    "weather_admin",
+    config.mysql_password,
+    "weather_db",
 )
 
 
@@ -31,7 +38,7 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
     """
     query = "SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories WHERE satid=%s"
     values = (satellite.id,)
-    with mysql_client as db:
+    with satellite_mysql_client as db:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
@@ -48,7 +55,7 @@ def get_weather_forecast(location: Location) -> WeatherForecast:
     """
     query = "SELECT * from cloud_cover_forecasts WHERE location_id=%s"
     values = (location.id,)
-    with mysql_client as db:
+    with weather_mysql_client as db:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Location not found")
