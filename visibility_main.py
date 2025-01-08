@@ -59,7 +59,7 @@ def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satelli
     query = """
     SELECT * FROM (
         SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories
-        WHERE endUTC > %s AND endUTC < (%s + INTERVAL 10 MINUTE)
+        WHERE endUTC > %s AND endUTC < (%s + 600)
     ) AS candidates
     WHERE startUTC < %s;
     """
