@@ -138,13 +138,13 @@ def get_visibility_of_satellite(
     if start_time.day != time.day:
         forecast_window = (24 - start_time.hour) + time.hour
     else:
-        forecast_window = time.hour - start_time.hour + 1
+        forecast_window = time.hour - start_time.hour
 
     result = SatelliteVisibility(
         satellite=satellite,
         startUTC=trajectory.startUTC,
         endUTC=trajectory.endUTC,
-        visibility=get_forecast_value(forecast, forecast_window),
+        visibility=get_forecast_value(forecast, forecast_window + 1),
     )
 
     return result
@@ -165,6 +165,9 @@ def _get_visibility_of_satellite(
 
     result = get_visibility_of_satellite(satellite, location, time)
 
+    result.startUTC = convert_utc_to_local(result.startUTC)
+    result.endUTC = convert_utc_to_local(result.endUTC)
+
     cosmos_db_client.add_item(result.dict())
 
     return result
@@ -184,10 +187,13 @@ def _get_visibile_satellites(
         list[SatelliteVisibility]: List of visibile satellites.
     """
     satellites = get_satellites_in_time_range(start_time, end_time)
-    return [
+    result = [
         get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
         for satellite in satellites
     ]
+    for item in result:
+        item.startUTC = convert_utc_to_local(item.startUTC)
+        item.endUTC = convert_utc_to_local(item.endUTC)
 
 
 if __name__ == "__main__":
