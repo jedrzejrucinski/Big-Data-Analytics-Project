@@ -4,6 +4,7 @@ from retry_requests import retry
 from config import EnvConfig
 from dotenv import load_dotenv
 from clients.mysql_client import MySQLClient
+from clients.cosmos_db import CosmosDBClient
 import os
 from models.satellites import Satellite, SatelliteTrajectory, SatelliteVisibility
 from models.weather import Location, WeatherForecast
@@ -26,6 +27,7 @@ weather_mysql_client = MySQLClient(
     config.mysql_password,
     "weather_db",
 )
+cosmos_db_client = CosmosDBClient(config=config)
 
 
 def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
@@ -110,12 +112,16 @@ def get_visibility_of_satellite(
     else:
         forecast_window = time.hour - start_time.hour + 1
 
-    return SatelliteVisibility(
+    result = SatelliteVisibility(
         satellite=satellite,
         startUTC=trajectory.startUTC,
         endUTC=trajectory.endUTC,
         visibility=get_forecast_value(forecast, forecast_window),
     )
+
+    cosmos_db_client.add_item(result.dict())
+
+    return result
 
 
 if __name__ == "__main__":
