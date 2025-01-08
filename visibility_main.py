@@ -129,7 +129,12 @@ def get_visibility_of_satellite(
     start_time = convert_utc_to_local(trajectory.startUTC)
     end_time = convert_utc_to_local(trajectory.endUTC)
     if time < start_time or time > end_time:
-        raise HTTPException(status_code=404, detail="Satellite not visible")
+        return SatelliteVisibility(
+            satellite=satellite,
+            startUTC=trajectory.startUTC,
+            endUTC=trajectory.endUTC,
+            visibility=0.0,
+        )
     if start_time.day != time.day:
         forecast_window = (24 - start_time.hour) + time.hour
     else:
