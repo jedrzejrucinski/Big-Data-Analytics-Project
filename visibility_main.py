@@ -108,7 +108,7 @@ def get_visibility_of_satellite(
     if start_time.day != time.day:
         forecast_window = (24 - start_time.hour) + time.hour
     else:
-        forecast_window = time.hour - start_time.hour
+        forecast_window = time.hour - start_time.hour + 1
 
     return SatelliteVisibility(
         satellite=satellite,
