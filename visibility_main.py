@@ -47,6 +47,30 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
     return SatelliteTrajectory(**data[0])
 
 
+def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satellite]:
+    """
+    Get satellites in time range.
+    Args:
+        start_time (int): Start time.
+        end_time (int): End time.
+    Returns:
+        list[Satellite]: List of satellites.
+    """
+    query = """
+    SELECT * FROM (
+        SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories
+        WHERE endUTC > %s AND endUTC < (%s + INTERVAL 1 HOUR)
+    ) AS candidates
+    WHERE startUTC < %s;
+    """
+    values = (end_time, start_time)
+    with satellite_mysql_client as db:
+        data = db.read(query, values)
+    if not data:
+        raise HTTPException(status_code=404, detail="Satellites not found")
+    return [Satellite(id=item["satid"]) for item in data]
+
+
 def get_weather_forecast(location: Location) -> WeatherForecast:
     """
     Get weather forecast data.
@@ -125,6 +149,11 @@ def get_visibility_of_satellite(
 
 
 if __name__ == "__main__":
-    import uvicorn
+    # import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # uvicorn.run(app, host="0.0.0.0", port=8000)
+    satellites = get_satellites_in_time_range(
+        start_time=1622505600, end_time=1622592000
+    )
+    for satellite in satellites:
+        print(satellite)
