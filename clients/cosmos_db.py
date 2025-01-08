@@ -1,6 +1,7 @@
 from azure.cosmos import CosmosClient, PartitionKey, exceptions
 from config import EnvConfig
 import os
+import uuid
 
 
 class CosmosDBClient:
@@ -15,6 +16,8 @@ class CosmosDBClient:
 
     def add_item(self, item):
         try:
+            if "id" not in item:
+                item["id"] = str(uuid.uuid4())
             self.container.create_item(body=item)
             print("Item created successfully")
         except exceptions.CosmosResourceExistsError:
