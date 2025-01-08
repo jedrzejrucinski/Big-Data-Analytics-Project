@@ -165,9 +165,6 @@ def _get_visibility_of_satellite(
 
     result = get_visibility_of_satellite(satellite, location, time)
 
-    result.startUTC = convert_utc_to_local(result.startUTC)
-    result.endUTC = convert_utc_to_local(result.endUTC)
-
     cosmos_db_client.add_item(result.dict())
 
     return result
@@ -191,9 +188,6 @@ def _get_visibile_satellites(
         get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
         for satellite in satellites
     ]
-    for item in result:
-        item.startUTC = convert_utc_to_local(item.startUTC)
-        item.endUTC = convert_utc_to_local(item.endUTC)
 
 
 if __name__ == "__main__":
