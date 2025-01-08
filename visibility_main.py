@@ -80,7 +80,7 @@ def convert_utc_to_local(utc_time: int) -> pd.Timestamp:
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
 def get_visibility_of_satellite(
-    satellite: Satellite, location: Location
+    satellite: Satellite, location: Location, time: pd.Timestamp = None
 ) -> SatelliteVisibility:
     """
     Get visibility of satellite.
@@ -92,7 +92,10 @@ def get_visibility_of_satellite(
     """
     trajectory = get_satellite_trajectory(satellite)
     forecast = get_weather_forecast(location)
-    current_time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
+    if time is not None:
+        current_time = time
+    else:
+        current_time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
     start_time = convert_utc_to_local(trajectory.startUTC)
     end_time = convert_utc_to_local(trajectory.endUTC)
     if current_time < start_time or current_time > end_time:
