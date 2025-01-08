@@ -63,7 +63,7 @@ def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satelli
     ) AS candidates
     WHERE startUTC < %s;
     """
-    values = (end_time, start_time)
+    values = (end_time, end_time, start_time)
     with satellite_mysql_client as db:
         data = db.read(query, values)
     if not data:
