@@ -15,6 +15,10 @@ class EnvConfig:
     kafka_group_id: str
     mysql_host: str
     mysql_password: str
+    cosmosdb_account_host: str
+    cosmosdb_account_key: str
+    cosmosdb_database: str
+    cosmosdb_container: str
 
     def __init__(self, config: dict):
         self.weather_api_key = config["WEATHER_API_KEY"]
@@ -33,3 +37,7 @@ class EnvConfig:
         self.kafka_group_id = config["KAFKA_GROUP_ID"]
         self.mysql_host = config["MYSQL_HOST"]
         self.mysql_password = config["MYSQL_PASSWORD"]
+        self.cosmosdb_account_host = config["COSMOSDB_ACCOUNT_HOST"]
+        self.cosmosdb_account_key = config["COSMOSDB_ACCOUNT_KEY"]
+        self.cosmosdb_database = config["COSMOSDB_DATABASE"]
+        self.cosmosdb_container = config["COSMOSDB_CONTAINER"]
