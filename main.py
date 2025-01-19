@@ -77,7 +77,7 @@ def update_model(model, id, prev_timestamp, timestamp):
 
     # Set Hadoop home directory
     os.environ["HADOOP_HOME"] = "/usr/local/hadoop"
-    os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
+    os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-11-openjdk-amd64"
 
     # Initialize Spark session
     spark = (
