@@ -179,9 +179,8 @@ def get_name_for_sat_id(sat_id: int) -> str:
     return data[0]["name"]
 
 
-@app.post("/visibility_of_satellite", tags=["visibility"])
-def _get_visibility_of_satellite(
-    satellite: Satellite, location: Location, startUTC: int, endUTC: int
+def get_visibility_of_satellite(
+    satellite: Satellite, location: Location
 ) -> SatelliteVisibility:
     """
     Get visibility of satellite.
@@ -191,11 +190,17 @@ def _get_visibility_of_satellite(
     Returns:
         dict: Visibility of satellite.
     """
+    current_time = int(time.time())
+    trajectory = get_satellite_trajectory(
+        satellite, current_time, current_time + 3600 * 24
+    )
+    forecast = get_weather_forecast(location)
 
-    result = get_visibility_of_satellite(satellite, location, startUTC, endUTC)
-    cosmos_db_client_1.add_item(result.dict())
-
-    return result
+    return SatelliteVisibility(
+        satellite=satellite,
+        passes=trajectory,
+        cloud_cover=forecast,
+    )
 
 
 @app.post("/visibile_satellites", tags=["visibility"])
