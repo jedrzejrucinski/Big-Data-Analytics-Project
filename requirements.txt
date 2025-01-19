@@ -16,3 +16,4 @@ mysql-connector-python
 river
 pytz
 azure-cosmos
+pyspark
