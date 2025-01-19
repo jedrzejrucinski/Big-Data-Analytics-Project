@@ -49,6 +49,7 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
+    print(data)
     return SatelliteTrajectory(**data[0])
 
 
@@ -126,6 +127,7 @@ def get_visibility_of_satellite(
         dict: Visibility of satellite.
     """
     trajectory = get_satellite_trajectory(satellite)
+    print(trajectory)
     forecast = get_weather_forecast(location)
     if not time:
         time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
