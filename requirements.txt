@@ -16,3 +16,7 @@ mysql-connector-python
 river
 pytz
 azure-cosmos
+pyspark
+azure-synapse
+pyodbc
+fastavro
