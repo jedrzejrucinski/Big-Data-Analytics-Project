@@ -175,13 +175,13 @@ def get_visibility_of_satellite(
     )
 
 
-def get_name_for_sat_id(sat_id: int):
+def get_name_for_sat_id(sat_id: int) -> str:
     query = "SELECT name FROM satellites WHERE id = %s"
     with satellite_mysql_client as db:
         data = db.read(query, (sat_id,))
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
-    return data
+    return data["name"]
 
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
