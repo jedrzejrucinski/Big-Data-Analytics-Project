@@ -156,34 +156,18 @@ def get_visibility_of_satellite(
     start_forecast = (startUTC - current_time) // 3600
     end_forecast = (endUTC - current_time) // 3600
 
-    relevant_forecast = {
-        f"forecast_hour_{i}": getattr(forecast, f"forecast_hour_{i}")
+    relevant_forecast = [
+        get_forecast_value(forecast, i + 1)
         for i in range(start_forecast, end_forecast + 1)
-    }
+    ]
 
-    time = convert_utc_to_local(time)
-    start_time = convert_utc_to_local(trajectory.startUTC)
-    end_time = convert_utc_to_local(trajectory.endUTC)
-    if time < start_time or time > end_time:
-        return SatelliteVisibility(
-            satellite=satellite,
-            startUTC=trajectory.startUTC,
-            endUTC=trajectory.endUTC,
-            visibility=0.0,
-        )
-    if start_time.day != time.day:
-        forecast_window = (24 - start_time.hour) + time.hour
-    else:
-        forecast_window = time.hour - start_time.hour
-
-    result = SatelliteVisibility(
+    return SatelliteVisibility(
         satellite=satellite,
-        startUTC=trajectory.startUTC,
-        endUTC=trajectory.endUTC,
-        visibility=get_forecast_value(forecast, forecast_window + 1),
+        passes=trajectory,
+        startUTC=convert_utc_to_local(startUTC),
+        endUTC=convert_utc_to_local(endUTC),
+        cloud_cover=relevant_forecast,
     )
-
-    return result
 
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
@@ -200,7 +184,7 @@ def _get_visibility_of_satellite(
     """
 
     result = get_visibility_of_satellite(satellite, location, startUTC, endUTC)
-
+    print(result)
     cosmos_db_client_1.add_item(result.dict())
 
     return result
