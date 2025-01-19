@@ -11,8 +11,6 @@ import pickle
 import math
 import datetime
 import pytz
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
 
 POF = 1737288000
 
@@ -75,73 +73,40 @@ def update_model(model, id, prev_timestamp, timestamp):
     time_id = timeslot_id(timestamp)
     prev_timestamp_id = timeslot_id(prev_timestamp)
 
-    # Set Hadoop home directory
-    os.environ["HADOOP_HOME"] = "/usr/local/hadoop"
-    os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-11-openjdk-amd64"
+    # get data from hadoop with timestamps between prev_timestamp and timestamp
+    data = []
+    X = []
+    Y = []
+    seen_timeslot_ids = set()
 
-    # Initialize Spark session
-    spark = (
-        SparkSession.builder.appName("WeatherDataProcessing")
-        .config(
-            "spark.driver.extraClassPath",
-            "/usr/local/hadoop/share/hadoop/common/*:/usr/local/hadoop/share/hadoop/common/lib/*",
-        )
-        .config(
-            "spark.executor.extraClassPath",
-            "/usr/local/hadoop/share/hadoop/common/*:/usr/local/hadoop/share/hadoop/common/lib/*",
-        )
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.1")
-        .getOrCreate()
-    )
+    for weather in data:
+        ts_id = timeslot_id(weather["dt"])
+        if (
+            ts_id not in seen_timeslot_ids
+            and ts_id > prev_timestamp_id
+            and ts_id < time_id
+        ):
+            seen_timeslot_ids.add(ts_id)
+            x = {
+                "dt": timestamp,
+                "temp": float(weather["temperature"]),
+                "pressure": int(weather["pressure"]),
+                "humidity": int(weather["humidity"]),
+                "wind_speed": float(weather["wind_speed"]),
+                "wind_deg": int(weather["wind_direction"]),
+                "precipitation": float(weather["precipitation"]),
+            }
+            y = int(weather["cloud_coverage"])
+            X.append(x)
+            Y.append(y)
 
-    # Read the Avro file from ADLS
-    avro_file_path = f"abfss://emergency-storage@{config.storage_account_name}.dfs.core.windows.net/weatherbatch.avro"
-    df = spark.read.format("avro").load(avro_file_path)
+    if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
+        logging.info("All data available")
+    else:
+        logging.warning("Some data missing")
 
-    # Filter the data based on the timestamps
-    filtered_df = df.filter((col("dt") > prev_timestamp) & (col("dt") < timestamp))
-
-    # Collect the filtered data
-    data = filtered_df.collect()
-    data = [row.asDict() for row in data]
-    print(data)
-
-    # Stop the Spark session
-    spark.stop()
-    # X = []
-    # Y = []
-    # seen_timeslot_ids = set()
-
-    # for weather in data:
-    #     ts_id = timeslot_id(weather["dt"])
-    #     if (
-    #         ts_id not in seen_timeslot_ids
-    #         and ts_id > prev_timestamp_id
-    #         and ts_id < time_id
-    #     ):
-    #         seen_timeslot_ids.add(ts_id)
-    #         x = {
-    #             "dt": weather["dt"],
-    #             "temp": float(weather["temperature"]),
-    #             "pressure": int(weather["pressure"]),
-    #             "humidity": int(weather["humidity"]),
-    #             "wind_speed": float(weather["wind_speed"]),
-    #             "wind_deg": int(weather["wind_direction"]),
-    #             "precipitation": float(weather["precipitation"]),
-    #         }
-    #         y = int(weather["cloud_coverage"])
-    #         X.append(x)
-    #         Y.append(y)
-
-    # if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
-    #     logging.info("All data available")
-    # else:
-    #     logging.info("Some data is missing")
-
-    # # Stop the Spark session
-    # spark.stop()
-    # for x, y in zip(X, Y):
-    #     model.learn_one(y, x)
+    for x, y in zip(X, Y):
+        model.learn_one(y, x)
 
 
 def process_message(message):
@@ -244,5 +209,4 @@ def get_location_id(lat, lon):
 
 
 if __name__ == "__main__":
-    update_model(None, 678, 1706742000, 1735682400)
-    # run_consumer()
+    run_consumer()
