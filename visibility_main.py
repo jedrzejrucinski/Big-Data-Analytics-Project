@@ -147,7 +147,7 @@ def get_forecast_value(forecast: WeatherForecast, forecast_window: int) -> float
 
 
 def get_visibility_of_satellite(
-    satellite: Satellite, location: Location, startUTC: int, endUTC: int
+    satellite: Satellite, location: Location
 ) -> SatelliteVisibility:
     """
     Get visibility of satellite.
@@ -157,21 +157,16 @@ def get_visibility_of_satellite(
     Returns:
         dict: Visibility of satellite.
     """
-    trajectory = get_satellite_trajectory(satellite, startUTC, endUTC)
+    current_time = int(time.time())
+    trajectory = get_satellite_trajectory(
+        satellite, current_time, current_time + 3600 * 24
+    )
     forecast = get_weather_forecast(location)
-    current_time = 1736388180
-    start_forecast = (startUTC - current_time) // 3600
-    end_forecast = (endUTC - current_time) // 3600
-
-    relevant_forecast = [
-        get_forecast_value(forecast, i + 1)
-        for i in range(start_forecast, end_forecast + 1)
-    ]
 
     return SatelliteVisibility(
         satellite=satellite,
         passes=trajectory,
-        cloud_cover=relevant_forecast,
+        cloud_cover=forecast,
     )
 
 
