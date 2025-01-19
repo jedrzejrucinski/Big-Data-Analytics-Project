@@ -179,6 +179,7 @@ def get_name_for_sat_id(sat_id: int) -> str:
     return data[0]["name"]
 
 
+@app.post("/visibility_of_satellite", tags=["visibility"])
 def get_visibility_of_satellite(
     satellite: Satellite, location: Location
 ) -> SatelliteVisibility:
