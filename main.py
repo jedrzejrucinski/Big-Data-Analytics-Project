@@ -101,43 +101,43 @@ def update_model(model, id, prev_timestamp, timestamp):
     data = [
         dict(zip([column[0] for column in cursor.description], row)) for row in rows
     ]
+    print(data)
+    # X = []
+    # Y = []
+    # seen_timeslot_ids = set()
 
-    X = []
-    Y = []
-    seen_timeslot_ids = set()
+    # for weather in data:
+    #     ts_id = timeslot_id(weather["dt"])
+    #     if (
+    #         ts_id not in seen_timeslot_ids
+    #         and ts_id > prev_timestamp_id
+    #         and ts_id < time_id
+    #     ):
+    #         seen_timeslot_ids.add(ts_id)
+    #         x = {
+    #             "dt": weather["dt"],
+    #             "temp": float(weather["temperature"]),
+    #             "pressure": int(weather["pressure"]),
+    #             "humidity": int(weather["humidity"]),
+    #             "wind_speed": float(weather["wind_speed"]),
+    #             "wind_deg": int(weather["wind_direction"]),
+    #             "precipitation": float(weather["precipitation"]),
+    #         }
+    #         y = int(weather["cloud_coverage"])
+    #         X.append(x)
+    #         Y.append(y)
 
-    for weather in data:
-        ts_id = timeslot_id(weather["dt"])
-        if (
-            ts_id not in seen_timeslot_ids
-            and ts_id > prev_timestamp_id
-            and ts_id < time_id
-        ):
-            seen_timeslot_ids.add(ts_id)
-            x = {
-                "dt": weather["dt"],
-                "temp": float(weather["temperature"]),
-                "pressure": int(weather["pressure"]),
-                "humidity": int(weather["humidity"]),
-                "wind_speed": float(weather["wind_speed"]),
-                "wind_deg": int(weather["wind_direction"]),
-                "precipitation": float(weather["precipitation"]),
-            }
-            y = int(weather["cloud_coverage"])
-            X.append(x)
-            Y.append(y)
+    # if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
+    #     logging.info("All data available")
+    # else:
+    #     logging.warning("Some data missing")
 
-    if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
-        logging.info("All data available")
-    else:
-        logging.warning("Some data missing")
+    # for x, y in zip(X, Y):
+    #     model.learn_one(y, x)
 
-    for x, y in zip(X, Y):
-        model.learn_one(y, x)
-
-    # Close the Synapse SQL connection
-    cursor.close()
-    conn.close()
+    # # Close the Synapse SQL connection
+    # cursor.close()
+    # conn.close()
 
 
 def process_message(message):
@@ -240,4 +240,5 @@ def get_location_id(lat, lon):
 
 
 if __name__ == "__main__":
-    run_consumer()
+    update_model(None, 1, 1706742000, 1735682400)
+    # run_consumer()
