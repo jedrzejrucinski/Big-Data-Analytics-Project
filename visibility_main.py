@@ -50,7 +50,7 @@ def get_satellite_trajectory(satellite: Satellite) -> List[SatelliteTrajectory]:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
-    return [SatelliteTrajectory(**data[e]) for e in len(data)]
+    return [SatelliteTrajectory(**item) for item in data]
 
 
 def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satellite]:
