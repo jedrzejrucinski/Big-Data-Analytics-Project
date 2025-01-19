@@ -1,10 +1,11 @@
 from pydantic import BaseModel, validator
 from typing import List
 import pandas as pd
+from weather import WeatherForecast
 
 
 class Satellite(BaseModel):
-    id: int = 10395
+    id: int = 10393
     name: str = "DELTA 1 DEB"
 
 
@@ -19,7 +20,7 @@ class SatelliteTrajectory(BaseModel):
 class SatelliteVisibility(BaseModel):
     satellite: Satellite
     passes: List[SatelliteTrajectory]
-    cloud_cover: List[int]
+    cloud_cover: WeatherForecast
 
 
 class VisibleSatellites(BaseModel):
