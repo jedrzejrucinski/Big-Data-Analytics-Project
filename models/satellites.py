@@ -20,3 +20,9 @@ class SatelliteVisibility(BaseModel):
     satellite: Satellite
     passes: List[SatelliteTrajectory]
     cloud_cover: List[int]
+
+
+class VisibleSatellites(BaseModel):
+    satellites: List[Satellite]
+    passes: List[SatelliteTrajectory]
+    cloud_cover: int
