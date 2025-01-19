@@ -83,8 +83,6 @@ def update_model(model, id, prev_timestamp, timestamp):
     spark = (
         SparkSession.builder.appName("WeatherDataProcessing")
         .config("spark.driver.extraClassPath", os.environ["SPARK_CLASSPATH"])
-        .config("spark.executor.extraClassPath", os.environ["SPARK_CLASSPATH"])
-        .config("spark.jars", "/usr/local/spark/jars/slf4j-reload4j-1.7.36.jar")
         .getOrCreate()
     )
 
