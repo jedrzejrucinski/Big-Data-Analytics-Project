@@ -36,7 +36,9 @@ cosmos_db_client_2 = CosmosDBClient(
 )
 
 
-def get_satellite_trajectory(satellite: Satellite) -> List[SatelliteTrajectory]:
+def get_satellite_trajectory(
+    satellite: Satellite, startUTC: int, endUTC: int
+) -> List[SatelliteTrajectory]:
     """
     Get satellite trajectory data.
     Args:
@@ -44,8 +46,19 @@ def get_satellite_trajectory(satellite: Satellite) -> List[SatelliteTrajectory]:
     Returns:
         SatelliteTrajectory: Satellite trajectory data.
     """
-    query = "SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories WHERE satid=%s"
-    values = (satellite.id,)
+    query = """
+        SELECT * FROM (
+        SELECT satid, startUTC, endUTC, startAz, endAz FROM trajectories
+        WHERE endUTC > %s AND endUTC < (%s + 1200)
+    ) AS candidates
+    WHERE startUTC < %s AND satid = %s;
+    """
+    values = (
+        startUTC,
+        endUTC,
+        endUTC,
+        satellite.id,
+    )
     with satellite_mysql_client as db:
         data = db.read(query, values)
     if not data:
@@ -116,7 +129,7 @@ def get_forecast_value(forecast: WeatherForecast, forecast_window: int) -> float
 
 
 def get_visibility_of_satellite(
-    satellite: Satellite, location: Location, time: int = None
+    satellite: Satellite, location: Location, startUTC: int, endUTC: int
 ) -> SatelliteVisibility:
     """
     Get visibility of satellite.
@@ -126,8 +139,7 @@ def get_visibility_of_satellite(
     Returns:
         dict: Visibility of satellite.
     """
-    trajectory = get_satellite_trajectory(satellite)
-    print(trajectory)
+    trajectory = get_satellite_trajectory(satellite, startUTC, endUTC)
     forecast = get_weather_forecast(location)
     if not time:
         time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
