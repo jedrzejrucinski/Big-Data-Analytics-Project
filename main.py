@@ -11,11 +11,15 @@ import pickle
 import math
 import datetime
 import pytz
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 
 POF = 1737288000
 
+
 def timeslot_id(timestamp):
-    return math.floor((timestamp - POF) / 60*15)
+    return math.floor((timestamp - POF) / 60 * 15)
+
 
 # Configure logging
 logging.basicConfig(
@@ -40,69 +44,91 @@ mysql_client = MySQLClient(
     "weather_db",
 )
 
+
 def extract_data(message):
     message = json.loads(message)
-    lat, lon = float(message['latitude']), float(message['longitude'])  #this will work but for now it wont match values in the table
+    lat, lon = float(message["latitude"]), float(
+        message["longitude"]
+    )  # this will work but for now it wont match values in the table
     y = int(message["cloud_coverage"])
     timestamp = int(message["timestamp"])
-    
-    x = {"dt": timestamp,
-         "temp": float(message["temperature"]),
-         "pressure": int(message["pressure"]),
-         "humidity": int(message["humidity"]),
-         "wind_speed": float(message["wind_speed"]),
-         "wind_deg": int(message["wind_direction"]),
-         "precipitation": float(message["precipitation"])}
-    
+
+    x = {
+        "dt": timestamp,
+        "temp": float(message["temperature"]),
+        "pressure": int(message["pressure"]),
+        "humidity": int(message["humidity"]),
+        "wind_speed": float(message["wind_speed"]),
+        "wind_deg": int(message["wind_direction"]),
+        "precipitation": float(message["precipitation"]),
+    }
+
     return lat, lon, y, timestamp, x
 
+
 def unix_to_hour_pol(time):
-    poland_tz = pytz.timezone('Europe/Warsaw')
+    poland_tz = pytz.timezone("Europe/Warsaw")
     return datetime.datetime.fromtimestamp(time, poland_tz).hour
+
 
 def update_model(model, id, prev_timestamp, timestamp):
     time_id = timeslot_id(timestamp)
     prev_timestamp_id = timeslot_id(prev_timestamp)
 
-    # get data from hadoop with timestamps between prev_timestamp and timestamp 
-    data = []
-    X = []
-    Y = []
-    seen_timeslot_ids = set()
+    spark = SparkSession.builder.appName("WeatherDataProcessing").getOrCreate()
 
-    for weather in data:
-        ts_id = timeslot_id(weather['dt'])
-        if ts_id not in seen_timeslot_ids and ts_id > prev_timestamp_id and ts_id < time_id:
-            seen_timeslot_ids.add(ts_id)
-            x = {"dt": timestamp,
-                "temp": float(weather["temperature"]),
-                "pressure": int(weather["pressure"]),
-                "humidity": int(weather["humidity"]),
-                "wind_speed": float(weather["wind_speed"]),
-                "wind_deg": int(weather["wind_direction"]),
-                "precipitation": float(weather["precipitation"])}
-            y = int(weather["cloud_coverage"])
-            X.append(x)
-            Y.append(y)
-    
-    if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
-        logging.info("All data available")
-    else:
-        logging.warning("Some data missing")
-    
-    for x, y in zip(X, Y):
-        model.learn_one(y, x)
-    
+    avro_file_path = f"abfss://emergency-storage@{config.storage_account_name}.dfs.core.windows.net/weatherbatch.avro"
+    df = spark.read.format("avro").load(avro_file_path)
 
+    filtered_df = df.filter((col("dt") > prev_timestamp) & (col("dt") < timestamp))
+
+    data = filtered_df.collect()
+    data = [row.asDict() for row in data]
+    print(data)
+
+    # X = []
+    # Y = []
+    # seen_timeslot_ids = set()
+
+    # for weather in data:
+    #     ts_id = timeslot_id(weather["dt"])
+    #     if (
+    #         ts_id not in seen_timeslot_ids
+    #         and ts_id > prev_timestamp_id
+    #         and ts_id < time_id
+    #     ):
+    #         seen_timeslot_ids.add(ts_id)
+    #         x = {
+    #             "dt": weather["dt"],
+    #             "temp": float(weather["temperature"]),
+    #             "pressure": int(weather["pressure"]),
+    #             "humidity": int(weather["humidity"]),
+    #             "wind_speed": float(weather["wind_speed"]),
+    #             "wind_deg": int(weather["wind_direction"]),
+    #             "precipitation": float(weather["precipitation"]),
+    #         }
+    #         y = int(weather["cloud_coverage"])
+    #         X.append(x)
+    #         Y.append(y)
+
+    # if len(seen_timeslot_ids) == time_id - prev_timestamp_id - 1:
+    #     logging.info("All data available")
+    # else:
+    #     logging.info("Some data is missing")
+
+    # # Stop the Spark session
+    # spark.stop()
+    # for x, y in zip(X, Y):
+    #     model.learn_one(y, x)
 
 
 def process_message(message):
     logging.info(f"Processing message: {message}")
     lat, lon, y, timestamp, x = extract_data(message)
 
-    #lat, lon = 51.7, 19.5
+    # lat, lon = 51.7, 19.5
     id = get_location_id(lat, lon)
-    
+
     ## TODO: check if data is valid and act accordingly
 
     # get model
@@ -110,7 +136,11 @@ def process_message(message):
         config.container_name, f"model_{id}.pkl"
     )
 
-    model, previous_timestamp, x_hist = model_data['model'], model_data['timestamp'], model_data["x_hist"]
+    model, previous_timestamp, x_hist = (
+        model_data["model"],
+        model_data["timestamp"],
+        model_data["x_hist"],
+    )
 
     # TODO: check if model is outdated and act accordingly
     if timeslot_id(timestamp) == timeslot_id(previous_timestamp):
@@ -122,7 +152,7 @@ def process_message(message):
         update_model(model, id, previous_timestamp, timestamp)
 
     # preprocess x
-    x['dt'] = unix_to_hour_pol(x['dt'])
+    x["dt"] = unix_to_hour_pol(x["dt"])
 
     # update model
     model.learn_one(y, x_hist[0])
@@ -130,7 +160,9 @@ def process_message(message):
     # forecast
     x_hist = x_hist[1:] + [x]
     forecast = (
-        np.clip(np.array(model.forecast(4 * 24, x_hist)), 0, 100).reshape(-1, 4).mean(axis=1)
+        np.clip(np.array(model.forecast(4 * 24, x_hist)), 0, 100)
+        .reshape(-1, 4)
+        .mean(axis=1)
     )
 
     # save forecast to ADLS & mysql
@@ -153,7 +185,9 @@ def process_message(message):
         db.execute(update_query, values)
 
     # Save the model back to ADLS and the forecast to ADLS
-    model_data_pickle = pickle.dumps({"model": model, "timestamp": timestamp, "x_hist": x_hist})
+    model_data_pickle = pickle.dumps(
+        {"model": model, "timestamp": timestamp, "x_hist": x_hist}
+    )
     adls_client.upload_pickle("models", f"model_{id}.pkl", model_data_pickle)
 
     forecast_dict = {
@@ -161,6 +195,7 @@ def process_message(message):
         "timestamp": timestamp,
         "forecast": forecast.tolist(),
     }
+
 
 def run_consumer():
     try:
@@ -187,4 +222,5 @@ def get_location_id(lat, lon):
 
 
 if __name__ == "__main__":
-    run_consumer()
+    update_model(None, 678, 1706742000, 1735682400)
+    # run_consumer()
