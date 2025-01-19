@@ -164,8 +164,6 @@ def get_visibility_of_satellite(
     return SatelliteVisibility(
         satellite=satellite,
         passes=trajectory,
-        startUTC=convert_utc_to_local(startUTC),
-        endUTC=convert_utc_to_local(endUTC),
         cloud_cover=relevant_forecast,
     )
 

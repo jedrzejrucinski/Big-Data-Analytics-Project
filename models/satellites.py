@@ -19,18 +19,4 @@ class SatelliteTrajectory(BaseModel):
 class SatelliteVisibility(BaseModel):
     satellite: Satellite
     passes: List[SatelliteTrajectory]
-    startUTC: pd.Timestamp
-    endUTC: pd.Timestamp
     cloud_cover: List[int]
-
-    @validator("startUTC", "endUTC", pre=True)
-    def parse_timestamps(cls, value):
-        if isinstance(value, int):
-            return pd.to_datetime(value, unit="s")
-        return value
-
-    @validator("startUTC", "endUTC", each_item=True)
-    def validate_timestamps(cls, value):
-        if not isinstance(value, pd.Timestamp):
-            raise ValueError("Invalid timestamp")
-        return value
