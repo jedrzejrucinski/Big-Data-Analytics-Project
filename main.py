@@ -70,6 +70,11 @@ def unix_to_hour_pol(time):
     return datetime.datetime.fromtimestamp(time, poland_tz).hour
 
 
+def timeslot_id(timestamp):
+    POF = 1737288000
+    return math.floor((timestamp - POF) / 60 * 15)
+
+
 def update_model(model, id, prev_timestamp, timestamp):
     time_id = timeslot_id(timestamp)
     prev_timestamp_id = timeslot_id(prev_timestamp)
@@ -88,7 +93,7 @@ def update_model(model, id, prev_timestamp, timestamp):
     query = f"""
     SELECT *
     FROM OPENROWSET(
-        BULK 'https://{config.storage_account_name}.dfs.core.windows.net/weatherbatch.avro',
+        BULK 'https://{config.storage_account_name}.dfs.core.windows.net/emergency_storage/weatherbatch.avro',
         FORMAT='AVRO'
     ) AS [result]
     WHERE dt > {prev_timestamp} AND dt < {timestamp}
@@ -133,9 +138,9 @@ def update_model(model, id, prev_timestamp, timestamp):
     # for x, y in zip(X, Y):
     #     model.learn_one(y, x)
 
-    # # Close the Synapse SQL connection
-    # cursor.close()
-    # conn.close()
+    # Close the Synapse SQL connection
+    cursor.close()
+    conn.close()
 
 
 def process_message(message):
