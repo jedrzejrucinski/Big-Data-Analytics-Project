@@ -171,7 +171,7 @@ def get_visibility_of_satellite(
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
 def _get_visibility_of_satellite(
-    satellite: Satellite, location: Location, time: int = None
+    satellite: Satellite, location: Location, startUTC: int, endUTC: int
 ) -> SatelliteVisibility:
     """
     Get visibility of satellite.
@@ -182,7 +182,7 @@ def _get_visibility_of_satellite(
         dict: Visibility of satellite.
     """
 
-    result = get_visibility_of_satellite(satellite, location, time)
+    result = get_visibility_of_satellite(satellite, location, startUTC, endUTC)
 
     cosmos_db_client_1.add_item(result.dict())
 
