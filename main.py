@@ -12,8 +12,6 @@ import math
 import datetime
 import pytz
 import pyodbc
-from azure.identity import DefaultAzureCredential
-from azure.synapse.spark import SparkSession
 
 POF = 1737288000
 
