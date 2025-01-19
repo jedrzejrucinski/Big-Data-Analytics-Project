@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import pandas as pd
+from typing import List
 from retry_requests import retry
 from config import EnvConfig
 from dotenv import load_dotenv
@@ -35,7 +36,7 @@ cosmos_db_client_2 = CosmosDBClient(
 )
 
 
-def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
+def get_satellite_trajectory(satellite: Satellite) -> List[SatelliteTrajectory]:
     """
     Get satellite trajectory data.
     Args:
@@ -49,8 +50,7 @@ def get_satellite_trajectory(satellite: Satellite) -> SatelliteTrajectory:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
-    print(data)
-    return SatelliteTrajectory(**data[0])
+    return [SatelliteTrajectory(**data[e]) for e in data]
 
 
 def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satellite]:
