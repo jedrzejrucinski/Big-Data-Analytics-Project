@@ -175,6 +175,15 @@ def get_visibility_of_satellite(
     )
 
 
+def get_name_for_sat_id(sat_id: int):
+    query = "SELECT name FROM satellite_db WHERE satellite_id = %s"
+    with satellite_mysql_client as db:
+        data = db.read(query, (sat_id,))
+    if not data:
+        raise HTTPException(status_code=404, detail="Satellite not found")
+    return data
+
+
 @app.post("/visibility_of_satellite", tags=["visibility"])
 def _get_visibility_of_satellite(
     satellite: Satellite, location: Location, startUTC: int, endUTC: int
@@ -213,7 +222,10 @@ def _get_visibile_satellites(
     relevant_forecast = get_forecast_value(forecast, start_forecast)
 
     return VisibleSatellites(
-        satellites=[satellite.satid for satellite in satellites],
+        satellites=[
+            Satellite(id=satellite.satid, name=get_name_for_sat_id(satellite.satid))
+            for satellite in satellites
+        ],
         passes=satellites,
         cloud_cover=relevant_forecast,
     )
