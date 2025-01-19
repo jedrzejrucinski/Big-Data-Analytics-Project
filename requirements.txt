@@ -17,5 +17,5 @@ river
 pytz
 azure-cosmos
 pyspark
-azure
+azure-synapse
 pyodbc
