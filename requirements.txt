@@ -19,3 +19,4 @@ azure-cosmos
 pyspark
 azure-synapse
 pyodbc
+fastavro
