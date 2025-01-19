@@ -4,8 +4,8 @@ import pandas as pd
 
 
 class Satellite(BaseModel):
-    id: int = 5
-    name: str = "VANGUARD 1"
+    id: int = 10395
+    name: str = "DELTA 1 DEB"
 
 
 class SatelliteTrajectory(BaseModel):
