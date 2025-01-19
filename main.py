@@ -11,6 +11,9 @@ import pickle
 import math
 import datetime
 import pytz
+import pyodbc
+from azure.identity import DefaultAzureCredential
+from azure.synapse.spark import SparkSession
 
 POF = 1737288000
 
@@ -73,8 +76,32 @@ def update_model(model, id, prev_timestamp, timestamp):
     time_id = timeslot_id(timestamp)
     prev_timestamp_id = timeslot_id(prev_timestamp)
 
-    # get data from hadoop with timestamps between prev_timestamp and timestamp
-    data = []
+    # Set up the Synapse SQL connection
+    server = "ala-hive-lookup.sql.azuresynapse.net"
+    username = config.synapse_login
+    password = config.synapse_password
+    driver = "{ODBC Driver 17 for SQL Server}"
+
+    connection_string = f"DRIVER={driver};SERVER={server};PORT=1433;DATABASE=master;UID={username};PWD={password}"
+    conn = pyodbc.connect(connection_string)
+    cursor = conn.cursor()
+
+    # Query the Avro files from ADLS
+    query = f"""
+    SELECT *
+    FROM OPENROWSET(
+        BULK 'https://{config.storage_account_name}.dfs.core.windows.net/weatherbatch.avro',
+        FORMAT='AVRO'
+    ) AS [result]
+    WHERE dt > {prev_timestamp} AND dt < {timestamp}
+    """
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
+    data = [
+        dict(zip([column[0] for column in cursor.description], row)) for row in rows
+    ]
+
     X = []
     Y = []
     seen_timeslot_ids = set()
@@ -88,7 +115,7 @@ def update_model(model, id, prev_timestamp, timestamp):
         ):
             seen_timeslot_ids.add(ts_id)
             x = {
-                "dt": timestamp,
+                "dt": weather["dt"],
                 "temp": float(weather["temperature"]),
                 "pressure": int(weather["pressure"]),
                 "humidity": int(weather["humidity"]),
@@ -107,6 +134,10 @@ def update_model(model, id, prev_timestamp, timestamp):
 
     for x, y in zip(X, Y):
         model.learn_one(y, x)
+
+    # Close the Synapse SQL connection
+    cursor.close()
+    conn.close()
 
 
 def process_message(message):
