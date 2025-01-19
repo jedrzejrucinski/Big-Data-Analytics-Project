@@ -159,7 +159,9 @@ def get_visibility_of_satellite(
     """
     current_time = int(time.time())
     trajectory = get_satellite_trajectory(
-        satellite, current_time, current_time + 3600 * 24
+        satellite,
+        current_time - 3600 * 24 * 10,
+        current_time - 3600 * 24 * 10 + 3600 * 24,
     )
     forecast = get_weather_forecast(location)
 
