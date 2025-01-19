@@ -168,7 +168,7 @@ def get_visibility_of_satellite(
     #     visibility=get_forecast_value(forecast, forecast_window + 1),
     # )
 
-    return result
+    # return result
 
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
