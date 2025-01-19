@@ -152,7 +152,7 @@ def get_visibility_of_satellite(
     """
     trajectory = get_satellite_trajectory(satellite, startUTC, endUTC)
     forecast = get_weather_forecast(location)
-    current_time = 1736475670
+    current_time = 1736388180
     start_forecast = (startUTC - current_time) // 3600
     end_forecast = (endUTC - current_time) // 3600
 
