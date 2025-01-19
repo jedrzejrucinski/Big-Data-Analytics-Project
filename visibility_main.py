@@ -176,7 +176,7 @@ def get_visibility_of_satellite(
 
 
 def get_name_for_sat_id(sat_id: int):
-    query = "SELECT name FROM satellite_db WHERE satellite_id = %s"
+    query = "SELECT name FROM satellites WHERE satellite_id = %s"
     with satellite_mysql_client as db:
         data = db.read(query, (sat_id,))
     if not data:
