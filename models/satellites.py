@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from typing import List
+import pandas as pd
 
 
 class Satellite(BaseModel):
@@ -16,6 +18,11 @@ class SatelliteTrajectory(BaseModel):
 
 class SatelliteVisibility(BaseModel):
     satellite: Satellite
-    startUTC: int
-    endUTC: int
-    visibility: float
+    passes: List[SatelliteTrajectory]
+    cloud_cover: List[int]
+
+
+class VisibleSatellites(BaseModel):
+    satellites: List[Satellite]
+    passes: List[SatelliteTrajectory]
+    cloud_cover: int
