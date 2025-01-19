@@ -7,7 +7,12 @@ from dotenv import load_dotenv
 from clients.mysql_client import MySQLClient
 from clients.cosmos_db import CosmosDBClient
 import os
-from models.satellites import Satellite, SatelliteTrajectory, SatelliteVisibility
+from models.satellites import (
+    Satellite,
+    SatelliteTrajectory,
+    SatelliteVisibility,
+    VisibleSatellites,
+)
 from models.weather import Location, WeatherForecast
 import time
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,7 +82,9 @@ def get_satellite_trajectory(
     return [SatelliteTrajectory(**item) for item in data]
 
 
-def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satellite]:
+def get_satellites_in_time_range(
+    start_time: int, end_time: int
+) -> list[SatelliteTrajectory]:
     """
     Get satellites in time range.
     Args:
@@ -98,7 +105,7 @@ def get_satellites_in_time_range(start_time: int, end_time: int) -> list[Satelli
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Satellites not found")
-    return [Satellite(id=item["satid"]) for item in data]
+    return [SatelliteTrajectory(**item) for item in data]
 
 
 def get_weather_forecast(location: Location) -> WeatherForecast:
@@ -182,7 +189,6 @@ def _get_visibility_of_satellite(
     """
 
     result = get_visibility_of_satellite(satellite, location, startUTC, endUTC)
-    print(result)
     cosmos_db_client_1.add_item(result.dict())
 
     return result
@@ -190,25 +196,27 @@ def _get_visibility_of_satellite(
 
 @app.post("/visibile_satellites", tags=["visibility"])
 def _get_visibile_satellites(
-    location: Location, start_time: int = 1736166360, end_time: int = 1736801390
-) -> list[SatelliteVisibility]:
+    location: Location, start_time: int = 1736166360
+) -> VisibleSatellites:
     """
-    Get visibile satellites.
+    Get visible satellites for a given location and start time.
     Args:
-        location (Location): Location object.
-        start_time (int): Start time.
-        end_time (int): End time.
+        location (Location): The location for which to get visible satellites.
+        start_time (int, optional): The start time in Unix timestamp format. Defaults to 1736166360.
     Returns:
-        list[SatelliteVisibility]: List of visibile satellites.
+        VisibleSatellites: An object containing the list of visible satellites, their passes, and the cloud cover forecast.
     """
-    satellites = get_satellites_in_time_range(start_time, end_time)
-    result = [
-        get_visibility_of_satellite(satellite, location, (start_time + end_time) / 2)
-        for satellite in satellites
-    ]
-    for item in result:
-        cosmos_db_client_2.add_item(item.dict())
-    return result
+    satellites = get_satellites_in_time_range(start_time, start_time + 3599)
+    forecast = get_weather_forecast(location)
+    current_time = 1736388180
+    start_forecast = (start_time - current_time) // 3600
+    relevant_forecast = get_forecast_value(forecast, start_forecast)
+
+    return VisibleSatellites(
+        satellites=[satellite.satid for satellite in satellites],
+        passes=satellites,
+        cloud_cover=relevant_forecast,
+    )
 
 
 if __name__ == "__main__":
