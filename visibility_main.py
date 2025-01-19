@@ -181,8 +181,7 @@ def get_name_for_sat_id(sat_id: int) -> str:
         data = db.read(query, (sat_id,))
     if not data:
         raise HTTPException(status_code=404, detail="Satellite not found")
-    print(data)
-    return data
+    return data[0]["name"]
 
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
