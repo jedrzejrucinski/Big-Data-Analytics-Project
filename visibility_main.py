@@ -9,12 +9,23 @@ from clients.cosmos_db import CosmosDBClient
 import os
 from models.satellites import Satellite, SatelliteTrajectory, SatelliteVisibility
 from models.weather import Location, WeatherForecast
+import time
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
 config = EnvConfig(os.environ)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://13.74.48.118:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Zezwalaj na wszystkie metody HTTP (GET, POST itp.)
+    allow_headers=["*"],  # Zezwalaj na wszystkie nagłówki
+)
+
 satellite_mysql_client = MySQLClient(
     config.mysql_host,
     "satellite_admin",
@@ -140,35 +151,39 @@ def get_visibility_of_satellite(
         dict: Visibility of satellite.
     """
     trajectory = get_satellite_trajectory(satellite, startUTC, endUTC)
-    print(trajectory)
     forecast = get_weather_forecast(location)
-    print(forecast)
-    # if not time:
-    #     time = pd.Timestamp.now("UTC").tz_convert("Europe/Warsaw")
-    # else:
-    #     time = convert_utc_to_local(time)
-    # start_time = convert_utc_to_local(trajectory.startUTC)
-    # end_time = convert_utc_to_local(trajectory.endUTC)
-    # if time < start_time or time > end_time:
-    #     return SatelliteVisibility(
-    #         satellite=satellite,
-    #         startUTC=trajectory.startUTC,
-    #         endUTC=trajectory.endUTC,
-    #         visibility=0.0,
-    #     )
-    # if start_time.day != time.day:
-    #     forecast_window = (24 - start_time.hour) + time.hour
-    # else:
-    #     forecast_window = time.hour - start_time.hour
+    current_time = int(time.time())
+    start_forecast = (startUTC - current_time) // 3600
+    end_forecast = (endUTC - current_time) // 3600
 
-    # result = SatelliteVisibility(
-    #     satellite=satellite,
-    #     startUTC=trajectory.startUTC,
-    #     endUTC=trajectory.endUTC,
-    #     visibility=get_forecast_value(forecast, forecast_window + 1),
-    # )
+    relevant_forecast = {
+        f"forecast_hour_{i}": getattr(forecast, f"forecast_hour_{i}")
+        for i in range(start_forecast, end_forecast + 1)
+    }
 
-    # return result
+    time = convert_utc_to_local(time)
+    start_time = convert_utc_to_local(trajectory.startUTC)
+    end_time = convert_utc_to_local(trajectory.endUTC)
+    if time < start_time or time > end_time:
+        return SatelliteVisibility(
+            satellite=satellite,
+            startUTC=trajectory.startUTC,
+            endUTC=trajectory.endUTC,
+            visibility=0.0,
+        )
+    if start_time.day != time.day:
+        forecast_window = (24 - start_time.hour) + time.hour
+    else:
+        forecast_window = time.hour - start_time.hour
+
+    result = SatelliteVisibility(
+        satellite=satellite,
+        startUTC=trajectory.startUTC,
+        endUTC=trajectory.endUTC,
+        visibility=get_forecast_value(forecast, forecast_window + 1),
+    )
+
+    return result
 
 
 @app.post("/visibility_of_satellite", tags=["visibility"])
