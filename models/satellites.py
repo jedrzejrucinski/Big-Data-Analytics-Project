@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List
+import pandas as pd
 
 
 class Satellite(BaseModel):
@@ -18,6 +19,6 @@ class SatelliteTrajectory(BaseModel):
 class SatelliteVisibility(BaseModel):
     satellite: Satellite
     passes: List[SatelliteTrajectory]
-    startUTC: int
-    endUTC: int
+    startUTC: pd.Timestamp
+    endUTC: pd.Timestamp
     cloud_cover: List[int]
