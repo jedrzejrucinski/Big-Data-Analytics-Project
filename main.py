@@ -82,8 +82,14 @@ def update_model(model, id, prev_timestamp, timestamp):
     # Initialize Spark session
     spark = (
         SparkSession.builder.appName("WeatherDataProcessing")
-        .config("spark.driver.extraJavaOptions", "-Djava.net.preferIPv4Stack=true")
-        .config("spark.executor.extraJavaOptions", "-Djava.net.preferIPv4Stack=true")
+        .config(
+            "spark.driver.extraClassPath",
+            "/usr/local/hadoop/share/hadoop/common/*:/usr/local/hadoop/share/hadoop/common/lib/*",
+        )
+        .config(
+            "spark.executor.extraClassPath",
+            "/usr/local/hadoop/share/hadoop/common/*:/usr/local/hadoop/share/hadoop/common/lib/*",
+        )
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.1")
         .getOrCreate()
     )
