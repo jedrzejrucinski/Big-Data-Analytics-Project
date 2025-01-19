@@ -75,16 +75,31 @@ def update_model(model, id, prev_timestamp, timestamp):
     time_id = timeslot_id(timestamp)
     prev_timestamp_id = timeslot_id(prev_timestamp)
 
-    spark = SparkSession.builder.appName("WeatherDataProcessing").getOrCreate()
+    # Set Hadoop home directory
+    os.environ["HADOOP_HOME"] = "/usr/local/hadoop"
+    os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-8-openjdk-amd64"
 
+    # Initialize Spark session
+    spark = (
+        SparkSession.builder.appName("WeatherDataProcessing")
+        .config("spark.driver.extraClassPath", os.environ["SPARK_CLASSPATH"])
+        .getOrCreate()
+    )
+
+    # Read the Avro file from ADLS
     avro_file_path = f"abfss://emergency-storage@{config.storage_account_name}.dfs.core.windows.net/weatherbatch.avro"
     df = spark.read.format("avro").load(avro_file_path)
 
+    # Filter the data based on the timestamps
     filtered_df = df.filter((col("dt") > prev_timestamp) & (col("dt") < timestamp))
 
+    # Collect the filtered data
     data = filtered_df.collect()
     data = [row.asDict() for row in data]
     print(data)
+
+    # Stop the Spark session
+    spark.stop()
 
     # X = []
     # Y = []
