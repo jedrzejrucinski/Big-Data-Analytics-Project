@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator
 from typing import List
 import pandas as pd
-from weather import WeatherForecast
+from models.weather import WeatherForecast
 
 
 class Satellite(BaseModel):
