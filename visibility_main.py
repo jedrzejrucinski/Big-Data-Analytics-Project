@@ -208,7 +208,7 @@ def get_visibility_of_satellite(
 
 @app.post("/visibile_satellites", tags=["visibility"])
 def _get_visibile_satellites(
-    location: Location, start_time: int = 1736166360
+    location: Location, start_time: int = 1737327887
 ) -> VisibleSatellites:
     """
     Get visible satellites for a given location and start time.
@@ -220,7 +220,7 @@ def _get_visibile_satellites(
     """
     satellites = get_satellites_in_time_range(start_time, start_time + 3599)
     forecast = get_weather_forecast(location)
-    current_time = 1736388180
+    current_time = int(time.time())
     start_forecast = (start_time - current_time) // 3600
     relevant_forecast = get_forecast_value(forecast, start_forecast)
 
