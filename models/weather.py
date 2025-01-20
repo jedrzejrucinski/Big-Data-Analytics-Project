@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 class Location(BaseModel):
     id: int = 678
-    name: str = None
     latitude: float = 51.7
     longitude: float = 19.5
 
