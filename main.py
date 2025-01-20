@@ -52,7 +52,7 @@ message_queue = Queue()
 def extract_data(message):
     try:
         message = json.loads(message)
-        lat, lon = float(message["latitude"]), float(message["longitude"])
+        id = int(message["id"])
         y = int(message["cloud_coverage"])
         timestamp = int(message["timestamp"])
 
@@ -66,11 +66,10 @@ def extract_data(message):
             "precipitation": float(message["precipitation"]),
         }
 
-        return lat, lon, y, timestamp, x
+        return id, y, timestamp, x
     except KeyError as e:
         logging.error(f"Missing key in message: {e}")
         return None
-
 
 def unix_to_hour_pol(time):
     poland_tz = pytz.timezone("Europe/Warsaw")
@@ -124,15 +123,10 @@ def update_model(model, id, prev_timestamp, timestamp):
 def process_message(message):
     try:
         logging.info(f"Processing message: {message}")
-        lat, lon, y, timestamp, x = extract_data(message)
-        if lat is None:
-            return
-
-        id = get_location_id(lat, lon)
+        id, y, timestamp, x = extract_data(message)
 
         if id is None:
-            logging.error(f"Location ID not found for lat: {lat}, lon: {lon}")
-            return
+            return None
 
         model_data = adls_client.load_pickled_model_from_container(
             config.container_name, f"model_{id}.pkl"
