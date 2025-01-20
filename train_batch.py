@@ -93,7 +93,7 @@ def train_model():
     with open('model.pkl', 'rb') as f:
         model = pickle.load(f)
     #plot_batch_train(forecasts)
-    x_hist = X[-24*4:]
+    x_hist = X[-24*4:].to_dict(orient='records')
     timestamp = df['dt'].iloc[-1]
     model_data = {"model": model, "timestamp": timestamp, "x_hist": x_hist,}
     return model_data

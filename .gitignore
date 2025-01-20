@@ -164,3 +164,4 @@ cython_debug/
 #.idea/
 
 testy.ipynb
+model_1.pkl
