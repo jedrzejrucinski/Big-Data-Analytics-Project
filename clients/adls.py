@@ -43,7 +43,7 @@ class ADLSClient:
             file_client = file_system_client.create_file(file_name)
 
             file_client.upload_data(pickle_data, overwrite=True)
-            print(f"Model {file_name} uploaded to {container_name} successfully.")
+            #print(f"Model {file_name} uploaded to {container_name} successfully.")
         except Exception as e:
             print(e)
 
@@ -71,7 +71,7 @@ class ADLSClient:
 
             download = file_client.download_file()
             model = pickle.loads(download.readall())
-            print(f"Model {file_name} loaded from {container_name} successfully.")
+            #print(f"Model {file_name} loaded from {container_name} successfully.")
             return model
         except Exception as e:
             print(e)
