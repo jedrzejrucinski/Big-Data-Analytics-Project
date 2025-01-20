@@ -208,7 +208,7 @@ def get_visibility_of_satellite(
 
 def get_closes_location(lat: float, long: float) -> Location:
     query = """
-    SELECT id
+    SELECT id, name
     FROM locations
     ORDER BY
         111.045 * DEGREES(ACOS(LEAST(1, COS(RADIANS(%s))
@@ -224,7 +224,7 @@ def get_closes_location(lat: float, long: float) -> Location:
     if not data:
         raise HTTPException(status_code=404, detail="Location not found")
     return Location(
-        id=data[0], name=get_name_for_sat_id(data[0]), latitude=lat, longitude=long
+        id=data[0]["id"], name=data[0]["name"], latitude=lat, longitude=long
     )
 
 
