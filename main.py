@@ -210,7 +210,7 @@ def run_consumer():
     try:
         logging.info("Starting Kafka consumer...")
         while True:
-            messages = kafka_consumer.consume_messages(timeout=1.0)
+            messages = kafka_consumer.consume_messages(timeout=0.01)
             logging.info("Batch of messages received")
             for message in messages:
                 logging.info("Processing message...")
