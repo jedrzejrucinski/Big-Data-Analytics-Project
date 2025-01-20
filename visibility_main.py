@@ -223,7 +223,9 @@ def get_closes_location(lat: float, long: float) -> Location:
         data = db.read(query, values)
     if not data:
         raise HTTPException(status_code=404, detail="Location not found")
-    return Location(id=data[0], latitude=lat, longitude=long)
+    return Location(
+        id=data[0], name=get_name_for_sat_id(data[0]), latitude=lat, longitude=long
+    )
 
 
 @app.post("/visibile_satellites", tags=["visibility"])
