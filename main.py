@@ -211,7 +211,9 @@ def run_consumer():
         logging.info("Starting Kafka consumer...")
         while True:
             messages = kafka_consumer.consume_messages(timeout=1.0)
+            logging.info("Batch of messages received")
             for message in messages:
+                logging.info("Processing message...")
                 message_queue.put(message)
 
            #ThreadPoolExecutor
@@ -239,6 +241,6 @@ def run_consumer():
 
 
 if __name__ == "__main__":
-    #run_consumer()
-    message = '{"precipitation":"0.0","cloud_coverage":"4","temperature":"4.45","humidity":"64","wind_speed":"3","wind_direction":"167","id":"918","pressure":"1021","timestamp":"1737375847"}'
-    process_message(message)
+    run_consumer()
+    #message = '{"precipitation":"0.0","cloud_coverage":"4","temperature":"4.45","humidity":"64","wind_speed":"3","wind_direction":"167","id":"918","pressure":"1021","timestamp":"1737375847"}'
+    #process_message(message)
