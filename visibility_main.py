@@ -206,9 +206,29 @@ def get_visibility_of_satellite(
     )
 
 
+def get_closes_location(lat: int, long: int) -> Location:
+    query = """
+    SELECT id
+    FROM locations
+    ORDER BY
+        111.045 * DEGREES(ACOS(LEAST(1, COS(RADIANS(%s))
+        * COS(RADIANS(latitude))
+        * COS(RADIANS(%s) - RADIANS(longitude))
+        + SIN(RADIANS(%s))
+        * SIN(RADIANS(latitude))))) ASC
+    LIMIT 1;
+    """
+    values = (lat, long, lat)
+    with weather_mysql_client as db:
+        data = db.read(query, values)
+    if not data:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return Location(id=data[0], latitude=lat, longitude=long)
+
+
 @app.post("/visibile_satellites", tags=["visibility"])
 def _get_visibile_satellites(
-    location: Location, start_time: int = 1737327887
+    lat: int, long: int, start_time: int = 1737327887
 ) -> VisibleSatellites:
     """
     Get visible satellites for a given location and start time.
@@ -219,6 +239,7 @@ def _get_visibile_satellites(
         VisibleSatellites: An object containing the list of visible satellites, their passes, and the cloud cover forecast.
     """
     satellites = get_satellites_in_time_range(start_time, start_time + 3599)
+    location = get_closes_location(lat, long)
     forecast = get_weather_forecast(location)
     current_time = int(time.time())
     start_forecast = (start_time - current_time) // 3600
