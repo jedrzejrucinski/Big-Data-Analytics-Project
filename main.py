@@ -121,7 +121,7 @@ def update_model(model, id, prev_timestamp, timestamp):
 
 
 def process_message(message):
-    try:
+    #try:
         logging.info(f"Processing message: {message}")
         id, y, timestamp, x = extract_data(message)
 
@@ -152,8 +152,8 @@ def process_message(message):
         logging.info(f"Updated forecast for location {id}")
         save_model(id, model, x_hist, forecast)
 
-    except Exception as e:
-        logging.error(f"Error processing message: {message}")
+    #except Exception as e:
+    #    logging.error(f"Error processing message: {message}")
 
 
 def update_forecast_to_mysql(id, forecast):
