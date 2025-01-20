@@ -239,4 +239,6 @@ def run_consumer():
 
 
 if __name__ == "__main__":
-    run_consumer()
+    #run_consumer()
+    message = {"precipitation":"0.0","cloud_coverage":"4","temperature":"4.45","humidity":"64","wind_speed":"3","wind_direction":"167","id":"918","pressure":"1021","timestamp":"1737375847"}
+    process_message(message)
