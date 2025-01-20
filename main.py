@@ -43,7 +43,7 @@ mysql_client = MySQLClient(
 )
 
 # Create a thread pool for parallel processing
-executor = ThreadPoolExecutor(max_workers=1)
+executor = ThreadPoolExecutor(max_workers=4)
 
 # Queue for message processing
 message_queue = Queue()
@@ -206,36 +206,36 @@ def get_location_id(lat, lon):
         return None
 
 
-# def run_consumer():
-#     try:
-#         logging.info("Starting Kafka consumer...")
-#         while True:
-#             messages = kafka_consumer.consume_messages(timeout=1.0)
-#             for message in messages:
-#                 message_queue.put(message)
-
-#            #ThreadPoolExecutor
-#             while not message_queue.empty():
-#                 message = message_queue.get()
-#                 executor.submit(process_message, message)
-
-#     except KeyboardInterrupt:
-#         logging.info("Stopping Kafka consumer...")
-#     finally:
-#         kafka_consumer.close()
-#         executor.shutdown()
-
 def run_consumer():
     try:
         logging.info("Starting Kafka consumer...")
         while True:
             messages = kafka_consumer.consume_messages(timeout=1.0)
             for message in messages:
-                process_message(message)
+                message_queue.put(message)
+
+           #ThreadPoolExecutor
+            while not message_queue.empty():
+                message = message_queue.get()
+                executor.submit(process_message, message)
+
     except KeyboardInterrupt:
         logging.info("Stopping Kafka consumer...")
     finally:
         kafka_consumer.close()
+        executor.shutdown()
+
+# def run_consumer():
+#     try:
+#         logging.info("Starting Kafka consumer...")
+#         while True:
+#             messages = kafka_consumer.consume_messages(timeout=1.0)
+#             for message in messages:
+#                 process_message(message)
+#     except KeyboardInterrupt:
+#         logging.info("Stopping Kafka consumer...")
+#     finally:
+#         kafka_consumer.close()
 
 
 if __name__ == "__main__":
