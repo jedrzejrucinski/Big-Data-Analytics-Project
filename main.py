@@ -43,7 +43,7 @@ mysql_client = MySQLClient(
 )
 
 # Create a thread pool for parallel processing
-executor = ThreadPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=1)
 
 # Queue for message processing
 message_queue = Queue()
@@ -149,7 +149,8 @@ def process_message(message):
         )
 
         update_forecast_to_mysql(id, forecast)
-        save_model_and_forecast(id, model, x_hist, forecast, timestamp)
+        logging.info(f"Updated forecast for location {id}")
+        save_model(id, model, x_hist, forecast)
 
     except Exception as e:
         logging.error(f"Error processing message: {e}")
@@ -178,18 +179,13 @@ def update_forecast_to_mysql(id, forecast):
         logging.error(f"Error updating forecast to MySQL: {e}")
 
 
-def save_model_and_forecast(id, model, x_hist, forecast, timestamp):
+def save_model(id, model, x_hist, timestamp):
     try:
         model_data_pickle = pickle.dumps(
             {"model": model, "timestamp": timestamp, "x_hist": x_hist}
         )
         adls_client.upload_pickle("models", f"model_{id}.pkl", model_data_pickle)
 
-        forecast_dict = {
-            "id": id,
-            "timestamp": timestamp,
-            "forecast": forecast.tolist(),
-        }
         # Save the forecast in ADLS or other storage
     except Exception as e:
         logging.error(f"Error saving model and forecast: {e}")
