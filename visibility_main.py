@@ -206,7 +206,7 @@ def get_visibility_of_satellite(
     )
 
 
-def get_closes_location(lat: int, long: int) -> Location:
+def get_closes_location(lat: float, long: float) -> Location:
     query = """
     SELECT id
     FROM locations
@@ -228,7 +228,7 @@ def get_closes_location(lat: int, long: int) -> Location:
 
 @app.post("/visibile_satellites", tags=["visibility"])
 def _get_visibile_satellites(
-    lat: int, long: int, start_time: int = 1737327887
+    lat: float, long: float, start_time: int = 1737327887
 ) -> VisibleSatellites:
     """
     Get visible satellites for a given location and start time.
