@@ -238,7 +238,7 @@ def _get_visibile_satellites(
     Returns:
         VisibleSatellites: An object containing the list of visible satellites, their passes, and the cloud cover forecast.
     """
-    satellites = get_satellites_in_time_range(start_time, start_time + 360)
+    satellites = get_satellites_in_time_range(start_time, start_time + 3599)
     location = get_closes_location(lat, long)
     forecast = get_weather_forecast(location)
     current_time = int(time.time())
