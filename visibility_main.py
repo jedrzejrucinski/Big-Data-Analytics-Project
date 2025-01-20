@@ -221,6 +221,7 @@ def get_closes_location(lat: float, long: float) -> Location:
     values = (lat, long, lat)
     with weather_mysql_client as db:
         data = db.read(query, values)
+    print(data)
     if not data:
         raise HTTPException(status_code=404, detail="Location not found")
     return Location(
