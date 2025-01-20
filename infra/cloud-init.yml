@@ -1,0 +1,93 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - openjdk-11-jdk
+  - wget
+  - curl
+  - mysql-server
+  - unzip
+  - net-tools
+
+runcmd:
+  # Update and upgrade packages
+    - sudo apt-get update
+    - sudo apt-get upgrade -y
+
+    # Install Apache NiFi
+    - wget https://archive.apache.org/dist/nifi/1.21.0/nifi-1.21.0-bin.tar.gz
+    - tar -xzf nifi-1.21.0-bin.tar.gz
+    - sudo mv nifi-1.21.0 /opt/nifi
+    - sudo tee /etc/systemd/system/nifi.service > /dev/null <<EOF
+      [Unit]
+      Description=Apache NiFi Service
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/opt/nifi/bin/nifi.sh run
+      ExecStop=/opt/nifi/bin/nifi.sh stop
+      User=azureuser
+      Restart=on-abort
+
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+    - sudo systemctl daemon-reload
+    - sudo systemctl enable nifi
+    - sudo systemctl start nifi
+
+    # Install Kafka and Zookeeper
+    - wget https://archive.apache.org/dist/kafka/3.5.0/kafka_2.13-3.5.0.tgz
+    - tar -xzf kafka_2.13-3.5.0.tgz
+    - sudo mv kafka_2.13-3.5.0 /opt/kafka
+    - sudo tee /etc/systemd/system/zookeeper.service > /dev/null <<EOF
+      [Unit]
+      Description=Zookeeper Service
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+      ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+      User=azureuser
+      Restart=on-abort
+
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+    - sudo systemctl daemon-reload
+    - sudo systemctl enable zookeeper
+    - sudo systemctl start zookeeper
+    - sudo tee /etc/systemd/system/kafka.service > /dev/null <<EOF
+      [Unit]
+      Description=Kafka Service
+      After=zookeeper.service
+
+      [Service]
+      Type=simple
+      ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
+      ExecStop=/opt/kafka/bin/kafka-server-stop.sh
+      User=azureuser
+      Restart=on-abort
+
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+    - sudo systemctl enable kafka
+    - sudo systemctl start kafka
+
+    # Configure MySQL
+    - sudo mysql_secure_installation <<EOF
+
+      y
+      your_password
+      your_password
+      y
+      y
+      y
+      y
+      EOF
+    - sudo mysql -u root -p'<password>' -e "CREATE DATABASE weather_db; CREATE USER 'weather_admin'@'%' IDENTIFIED BY 'your_password'; GRANT ALL PRIVILEGES ON weather_db.* TO 'weather_admin'@'%'; FLUSH PRIVILEGES;"
+    - sudo mysql -u root -p'<password>' -e "CREATE DATABASE satellite_db; CREATE USER 'satellite_admin'@'%' IDENTIFIED BY 'your_password'; GRANT ALL PRIVILEGES ON satellite_db.* TO 'satellite_admin'@'%'; FLUSH PRIVILEGES;"
+
+final_message: "Kafka, NiFi, and MySQL setup completed on nifi-vm!"
