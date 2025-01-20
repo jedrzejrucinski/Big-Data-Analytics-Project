@@ -221,7 +221,7 @@ def _get_visibile_satellites(
     satellites = get_satellites_in_time_range(start_time, start_time + 3599)
     forecast = get_weather_forecast(location)
     current_time = int(time.time())
-    start_forecast = (start_time - current_time) // 3600
+    start_forecast = (current_time - start_time) // 3600
     relevant_forecast = get_forecast_value(forecast, start_forecast)
 
     return VisibleSatellites(
