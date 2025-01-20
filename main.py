@@ -206,38 +206,38 @@ def get_location_id(lat, lon):
         return None
 
 
+# def run_consumer():
+#     try:
+#         logging.info("Starting Kafka consumer...")
+#         while True:
+#             messages = kafka_consumer.consume_messages(timeout=0.01)
+#             logging.info("Batch of messages received")
+#             for message in messages:
+#                 logging.info("Processing message...")
+#                 message_queue.put(message)
+
+#            #ThreadPoolExecutor
+#             while not message_queue.empty():
+#                 message = message_queue.get()
+#                 executor.submit(process_message, message)
+
+#     except KeyboardInterrupt:
+#         logging.info("Stopping Kafka consumer...")
+#     finally:
+#         kafka_consumer.close()
+#         executor.shutdown()
+
 def run_consumer():
     try:
         logging.info("Starting Kafka consumer...")
         while True:
             messages = kafka_consumer.consume_messages(timeout=0.01)
-            logging.info("Batch of messages received")
             for message in messages:
-                logging.info("Processing message...")
-                message_queue.put(message)
-
-           #ThreadPoolExecutor
-            while not message_queue.empty():
-                message = message_queue.get()
-                executor.submit(process_message, message)
-
+                process_message(message)
     except KeyboardInterrupt:
         logging.info("Stopping Kafka consumer...")
     finally:
         kafka_consumer.close()
-        executor.shutdown()
-
-# def run_consumer():
-#     try:
-#         logging.info("Starting Kafka consumer...")
-#         while True:
-#             messages = kafka_consumer.consume_messages(timeout=1.0)
-#             for message in messages:
-#                 process_message(message)
-#     except KeyboardInterrupt:
-#         logging.info("Stopping Kafka consumer...")
-#     finally:
-#         kafka_consumer.close()
 
 
 if __name__ == "__main__":
