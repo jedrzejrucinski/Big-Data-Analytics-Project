@@ -153,7 +153,7 @@ def process_message(message):
         save_model(id, model, x_hist, forecast)
 
     except Exception as e:
-        logging.error(f"Error processing message: {e}")
+        logging.error(f"Error processing message: {message}")
 
 
 def update_forecast_to_mysql(id, forecast):
